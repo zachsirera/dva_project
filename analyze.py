@@ -134,6 +134,7 @@ def group_tweets_by_month(tweet_list: list):
 
 	return aggregated
 
+
 def update_monthly_counts(aggregated: dict):
 	''' update a csv with aggregated data ''' 
 
@@ -156,12 +157,77 @@ def update_monthly_counts(aggregated: dict):
 
 	return 
 
+def write_data_csv(tweet_list: list): 
+
+	csv_columns = ['created_at', 'id_str', 'favorite_count', 'retweet_count', 'sentiment', 'subjectivity', 'reading_ease', 'grade_level', 'length']
+
+	try:
+		with open('tweet_data.csv', 'w', newline='') as f:
+			csv_writer = csv.writer(f, delimiter=",")
+			csv_writer.writerow(csv_columns)
+			
+			for tweet in tweet_list:
+				values = []
+				try:
+					values.append(tweet['created_at'])
+				except KeyError:
+					values.append(None)
+				try:
+					values.append(tweet['id_str'])
+				except KeyError:
+					values.append(None)
+
+				try:
+					values.append(tweet['favorite_count'])
+				except KeyError:
+					values.append(None)
+
+				try:
+					values.append(tweet['retweet_count'])
+				except KeyError:
+					values.append(None)
+
+				try:
+					values.append(tweet['sentiment'])
+				except KeyError:
+					values.append(None)
+
+				try:
+					values.append(tweet['subjectivity'])
+				except KeyError:
+					values.append(None)
+
+				try:
+					values.append(tweet['reading_ease'])
+				except KeyError:
+					values.append(None)
+
+				try:
+					values.append(tweet['grade_level'])
+				except KeyError:
+					values.append(None)
+
+				try:
+					values.append(len(tweet['text']))
+				except KeyError:
+					values.append(None)
+				except TypeError:
+					values.append(None)
+				
+				csv_writer.writerow(values)
+
+
+	except IOError:
+		print("IOError")
+
+	return 
 
 
 
 if __name__ == '__main__':
 	tweet_list = read_csv('tweets.csv')
-	aggregated = group_tweets_by_month(tweet_list)
-	update_monthly_counts(aggregated)
+	write_data_csv(tweet_list)
+	# aggregated = group_tweets_by_month(tweet_list)
+	# update_monthly_counts(aggregated)
 
 	
