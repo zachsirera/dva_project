@@ -15,6 +15,7 @@
 				<th scope="col"> Avg Subjectivity </th>
 				<th scope="col"> Avg Reading Ease </th>
 				<th scope="col"> Avg Reading Level </th>
+				<!-- <th scope="col"> Avg Tweet Length </th> Need to add this to the data structure -->
 			</tr>
 		</thead>
 		<tbody>
@@ -26,6 +27,7 @@
 					<td> {{ row['subjectivity'] }} </td>
 					<td> {{ row['reading_ease'] }} </td>
 					<td> {{ row['grade_level'] }} </td>
+					<!-- <td> {{ row['length'] }} </td> -->
 				</tr>
 			{% endfor %}
 		</tbody>
