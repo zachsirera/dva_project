@@ -227,7 +227,7 @@ def write_data_csv(tweet_list: list):
 if __name__ == '__main__':
 	tweet_list = read_csv('tweets.csv')
 	write_data_csv(tweet_list)
-	# aggregated = group_tweets_by_month(tweet_list)
-	# update_monthly_counts(aggregated)
+	aggregated = group_tweets_by_month(tweet_list)
+	update_monthly_counts(aggregated)
 
 	
