@@ -222,12 +222,33 @@ def write_data_csv(tweet_list: list):
 
 	return 
 
+def get_aggregated_tweets():
+	''' get the current version of the aggregated tweets to display '''
+
+	aggregate_list = []
+
+	with open('aggregated_tweets.csv', 'r') as f:
+		csv_reader = csv.reader(f, delimiter=',')
+		header_labels = list(next(csv_reader))
+
+		for row in csv_reader:
+			data = dict()
+			for index, label in enumerate(header_labels):
+				try:
+					data[header_labels[index]] = row[index]
+				except IndexError:
+					data[header_labels[index]] = None
+			aggregate_list.append(data)
+
+	return aggregate_list
+
 
 
 if __name__ == '__main__':
-	tweet_list = read_csv('tweets.csv')
-	write_data_csv(tweet_list)
-	aggregated = group_tweets_by_month(tweet_list)
-	update_monthly_counts(aggregated)
+	# tweet_list = read_csv('tweets.csv')
+	# write_data_csv(tweet_list)
+	# aggregated = group_tweets_by_month(tweet_list)
+	# update_monthly_counts(aggregated)
+	pass
 
 	

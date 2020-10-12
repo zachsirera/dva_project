@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block title %}
+	Trump Tweets 
+{% endblock %}
+
+{% block main %}
+	<div class="container" style="width: 80%">
+	<table class="table table-hover table-bordered">
+		<thead class="thead-dark">
+			<tr>
+				<th scope="col"> Month </th>
+				<th scope="col"> Tweets Posted </th>
+				<th scope="col"> Avg Sentiment </th>
+				<th scope="col"> Avg Subjectivity </th>
+				<th scope="col"> Avg Reading Ease </th>
+				<th scope="col"> Avg Reading Level </th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for row in tweet_list %}
+				<tr>
+					<td> {{ row['month'] }} </td>
+					<td> {{ row['count'] }} </td>
+					<td> {{ row['sentiment'] }} </td>
+					<td> {{ row['subjectivity'] }} </td>
+					<td> {{ row['reading_ease'] }} </td>
+					<td> {{ row['grade_level'] }} </td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+	
+	
+{% endblock %}
