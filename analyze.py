@@ -3,7 +3,7 @@
 
 # import the necessary libraries
 import csv
-# import datetime
+import string
 import textstat
 
 from textblob import TextBlob
@@ -29,7 +29,19 @@ def read_csv(filename: str):
 					tweet[header_labels[index]] = None
 			tweet_list.append(tweet)
 
+	return get_tweet_length(tweet_list)
+
+
+
+def get_tweet_length(tweet_list: list):
+	''' get the length of each tweet before parsing '''
+
+	for index, tweet in enumerate(tweet_list):
+		if tweet['text'] != None:
+			tweet['length'] = len(tweet['text'])
+
 	return parse_tweets(tweet_list)
+
 
 
 def parse_tweets(tweet_list: list):
@@ -60,11 +72,26 @@ def parse_tweets(tweet_list: list):
 					# Occasionally tweets contain a double space. This can be problematic when splitting on " "
 					pass
 
-			tweet_list[index]['text'] = " ".join(tweet_separated)
+			# Join the tweet back together and strip out any remaining punctuation
+			tweet_joined = " ".join(tweet_separated) 
+			tweet_list[index]['text'] = tweet_joined.translate(str.maketrans('', '', string.punctuation))
+
+	return remove_retweets(tweet_list)
 
 
-	return get_tweet_sentiment(tweet_list)
 
+def remove_retweets(tweet_list: list):
+	''' remove rewtweets. We want Trump's tweets only '''	
+
+	new_tweet_list = []
+
+	for tweet in tweet_list:
+		if tweet['is_retweet'] == 'false':
+			new_tweet_list.append(tweet)
+
+
+
+	return get_tweet_sentiment(new_tweet_list)
 
 
 
@@ -95,7 +122,60 @@ def get_tweet_complexity(tweet_list: list):
 			# Tweets with no text won't be analyzed
 			pass
 
+	return assign_subject_label(tweet_list)
+
+
+
+def assign_subject_label(tweet_list: list):
+	''' assign a subject label if applicable '''
+
+	# Add other keywords (all lowercase) to these lists to classify tweets 
+	# Don't add other lists without restructuring the csv writer functions  
+	economy = ['economy', 'jobs', 'tax', 'taxes', 'gdp', 'trade', 'deficit', 'debt', 'business']
+	covid = ['covid', 'covid-19', 'coronavirus', 'virus']
+	foreign_policy = ['china', 'eu', 'mexico', 'canada', 'trade', 'korea', 'nafta', 'usmca', 'border', 'immigration', 'military', 'war', 'asia', 'isis']
+	domestic_policy = ['obamacare', 'tax', 'taxes', 'immigration', 'immigrants', 'congress', 'republican', 'republicans', 'democrat', 'democrats', 'crime', 'border', 'amendment', 'military', 'healthcare']
+	impeachment = ['mueller', 'comey', 'witch', 'dossier', 'hoax', 'impeachment']
+
+	for index, tweet in enumerate(tweet_list):
+		if tweet['text'] != None:
+			counter = 0
+			tweet_words = tweet['text'].lower().split(" ")
+			tweet['economy'] = 0
+			tweet['covid'] = 0
+			tweet['foreign_policy'] = 0
+			tweet['domestic_policy'] = 0
+			tweet['impeachment'] = 0
+			tweet['other'] = 1
+
+			for word in tweet_words:
+				if word in economy:
+					tweet['economy'] = 1
+					counter += 1
+				if word in covid:
+					tweet['covid'] = 1
+					counter += 1
+				if word in foreign_policy:
+					tweet['foreign_policy'] = 1
+					counter += 1
+				if word in domestic_policy:
+					tweet['domestic_policy'] = 1
+					counter += 1
+				if word in impeachment:
+					tweet['impeachment'] = 1
+					counter += 1
+				if counter != 0:
+					tweet['other'] = 0
+
 	return tweet_list
+
+
+
+def increment(count, old, new):
+	''' function to increment averages by new data '''
+
+	return (count * old + new) / (count + 1)
+
 
 
 def group_tweets_by_month(tweet_list: list):
@@ -110,20 +190,39 @@ def group_tweets_by_month(tweet_list: list):
 			try:
 				month = f'{date[2]}-{date[0]}'
 				data = aggregated[month] 
-				new_subj = (data['count'] * data['subjectivity'] + tweet['subjectivity']) / (data['count'] + 1)
-				new_sent = (data['count'] * data['sentiment'] + tweet['sentiment']) / (data['count'] + 1)
-				new_reading = (data['count'] * data['reading_ease'] + tweet['reading_ease']) / (data['count'] + 1)
-				new_grade = (data['count'] * data['grade_level'] + tweet['grade_level']) / (data['count'] + 1)
+
+				new_subj = increment(data['count'], data['subjectivity'], tweet['subjectivity'])
+				new_sent = increment(data['count'], data['sentiment'], tweet['sentiment'])
+				new_reading = increment(data['count'], data['reading_ease'], tweet['reading_ease'])
+				new_grade = increment(data['count'], data['grade_level'], tweet['grade_level'])
+				new_retweet_ct = increment(data['count'], data['retweet_count'], int(tweet['retweet_count']))
+				new_favorite_ct = increment(data['count'], data['favorite_count'], int(tweet['favorite_count']))
+				new_length = increment(data['count'], data['length'], int(tweet['length']))
+
 				data['count'] += 1
 				data['subjectivity'] = new_subj
 				data['sentiment'] = new_sent
 				data['reading_ease'] = new_reading
 				data['grade_level'] = new_grade
+				data['retweet_count'] = new_retweet_ct
+				data['favorite_count'] = new_favorite_ct
+				data['length'] = new_length
+				data['subject'] = 'all'
+
 				aggregated[month] = data
 			except KeyError:
 				# Using this catch to add new objects to the dictionary
-				aggregated[month] = {'count': 1, 'sentiment': float(tweet['sentiment']), 'subjectivity': float(tweet['subjectivity']),
-				'reading_ease': float(tweet['reading_ease']), 'grade_level': float(tweet['grade_level'])}
+				aggregated[month] = {
+					'count': 1, 
+					'sentiment': float(tweet['sentiment']), 
+					'subjectivity': float(tweet['subjectivity']),
+					'reading_ease': float(tweet['reading_ease']), 
+					'grade_level': float(tweet['grade_level']),
+					'retweet_count': int(tweet['retweet_count']),
+					'favorite_count': int(tweet['favorite_count']),
+					'length': int(tweet['length']),
+					'subject': 'all'
+				}
 			except IndexError:
 				# Tweets with improperly formatted dates won't be aggregated 
 				pass
@@ -135,21 +234,99 @@ def group_tweets_by_month(tweet_list: list):
 	return aggregated
 
 
-def update_monthly_counts(aggregated: dict):
+
+def group_tweets_by_subject(tweet_list: list, subject):
+	''' aggregate tweet_list, group by subject ''' 
+
+	aggregated = dict()
+
+	for tweet in tweet_list:
+		if tweet[subject] == 0:
+			pass
+		else:
+			try: 
+				date = tweet['created_at'].split(" ")[0].split("-")
+
+				try:
+					month = f'{date[2]}-{date[0]}'
+					data = aggregated[month] 
+
+					new_subj = increment(data['count'], data['subjectivity'], tweet['subjectivity'])
+					new_sent = increment(data['count'], data['sentiment'], tweet['sentiment'])
+					new_reading = increment(data['count'], data['reading_ease'], tweet['reading_ease'])
+					new_grade = increment(data['count'], data['grade_level'], tweet['grade_level'])
+					new_retweet_ct = increment(data['count'], data['retweet_count'], int(tweet['retweet_count']))
+					new_favorite_ct = increment(data['count'], data['favorite_count'], int(tweet['favorite_count']))
+					new_length = increment(data['count'], data['length'], int(tweet['length']))
+
+					data['count'] += 1
+					data['subjectivity'] = new_subj
+					data['sentiment'] = new_sent
+					data['reading_ease'] = new_reading
+					data['grade_level'] = new_grade
+					data['retweet_count'] = new_retweet_ct
+					data['favorite_count'] = new_favorite_ct
+					data['length'] = new_length
+
+					aggregated[month] = data
+				except KeyError:
+					# Using this catch to add new objects to the dictionary
+					aggregated[month] = {
+						'count': 1, 
+						'sentiment': float(tweet['sentiment']), 
+						'subjectivity': float(tweet['subjectivity']),
+						'reading_ease': float(tweet['reading_ease']), 
+						'grade_level': float(tweet['grade_level']),
+						'retweet_count': int(tweet['retweet_count']),
+						'favorite_count': int(tweet['favorite_count']),
+						'length': int(tweet['length']),
+						'subject': subject
+					}
+				except IndexError:
+					# Tweets with improperly formatted dates won't be aggregated 
+					pass
+
+			except AttributeError:
+				# Tweets with no date won't be aggregated 
+				pass
+
+	return aggregated
+
+
+def add_subject_aggregates(tweet_list: list): 
+	''' actually pass the subject lables to the aggregate function ''' 
+
+	results = []
+	subjects = ['economy', 'covid', 'foreign_policy', 'domestic_policy', 'impeachment', 'other']
+
+	for subject in subjects:
+		results.append(group_tweets_by_subject(tweet_list, subject))
+
+	return results
+
+
+def write_aggregated_csv(aggregated_month: dict, aggregated_subject: dict):
 	''' update a csv with aggregated data ''' 
 
-	csv_columns = ['month', 'count', 'sentiment', 'subjectivity', 'reading_ease', 'grade_level']
+	csv_columns = ['month', 'count', 'sentiment', 'subjectivity', 'reading_ease', 'grade_level', 'retweet_count', 'favorite_count', 'length', 'subject']
 
 	try:
 		with open('aggregated_tweets.csv', 'w', newline='') as f:
 			csv_writer = csv.writer(f, delimiter=",")
 			csv_writer.writerow(csv_columns)
 			
-			for data in aggregated:
-				values = list(aggregated[data].values())
+			for data in aggregated_month:
+				values = list(aggregated_month[data].values())
 				values.insert(0, data)
 				
 				csv_writer.writerow(values)
+
+			for subject in aggregated_subject:
+				for data in subject: 
+					values = list(subject[data].values())
+					values.insert(0, data)
+					
+					csv_writer.writerow(values)
 
 
 	except IOError:
@@ -157,9 +334,12 @@ def update_monthly_counts(aggregated: dict):
 
 	return 
 
+
+
+
 def write_data_csv(tweet_list: list): 
 
-	csv_columns = ['created_at', 'id_str', 'favorite_count', 'retweet_count', 'sentiment', 'subjectivity', 'reading_ease', 'grade_level', 'length']
+	csv_columns = ['created_at', 'id_str', 'favorite_count', 'retweet_count', 'sentiment', 'subjectivity', 'reading_ease', 'grade_level', 'length', 'economy', 'covid', 'foreign_policy', 'domestic_policy', 'impeachment', 'other']
 
 	try:
 		with open('tweet_data.csv', 'w', newline='') as f:
@@ -168,51 +348,13 @@ def write_data_csv(tweet_list: list):
 			
 			for tweet in tweet_list:
 				values = []
-				try:
-					values.append(tweet['created_at'])
-				except KeyError:
-					values.append(None)
-				try:
-					values.append(tweet['id_str'])
-				except KeyError:
-					values.append(None)
+				for column in csv_columns:
+					try:
+						values.append(tweet[column])
+					except KeyError:
+						values.append(None)
 
-				try:
-					values.append(tweet['favorite_count'])
-				except KeyError:
-					values.append(None)
 
-				try:
-					values.append(tweet['retweet_count'])
-				except KeyError:
-					values.append(None)
-
-				try:
-					values.append(tweet['sentiment'])
-				except KeyError:
-					values.append(None)
-
-				try:
-					values.append(tweet['subjectivity'])
-				except KeyError:
-					values.append(None)
-
-				try:
-					values.append(tweet['reading_ease'])
-				except KeyError:
-					values.append(None)
-
-				try:
-					values.append(tweet['grade_level'])
-				except KeyError:
-					values.append(None)
-
-				try:
-					values.append(len(tweet['text']))
-				except KeyError:
-					values.append(None)
-				except TypeError:
-					values.append(None)
 				
 				csv_writer.writerow(values)
 
@@ -221,6 +363,9 @@ def write_data_csv(tweet_list: list):
 		print("IOError")
 
 	return 
+
+
+
 
 def get_aggregated_tweets():
 	''' get the current version of the aggregated tweets to display '''
@@ -244,11 +389,13 @@ def get_aggregated_tweets():
 
 
 
+
 if __name__ == '__main__':
-	# tweet_list = read_csv('tweets.csv')
-	# write_data_csv(tweet_list)
-	# aggregated = group_tweets_by_month(tweet_list)
-	# update_monthly_counts(aggregated)
+	tweet_list = read_csv('tweets.csv')
+	write_data_csv(tweet_list)
+	aggregated_month = group_tweets_by_month(tweet_list)
+	aggregated_subject = add_subject_aggregates(tweet_list)
+	write_aggregated_csv(aggregated_month, aggregated_subject)
 	pass
 
 	
