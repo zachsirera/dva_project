@@ -73,8 +73,10 @@ def parse_tweets(tweet_list: list):
 					pass
 
 			# Join the tweet back together and strip out any remaining punctuation
-			tweet_joined = " ".join(tweet_separated) 
-			tweet_list[index]['text'] = tweet_joined.translate(str.maketrans('', '', string.punctuation))
+			# tweet_joined = " ".join(tweet_separated) 
+			# tweet_list[index]['text'] = tweet_joined.translate(str.maketrans('', '', string.punctuation))
+			
+			tweet_list[index]['text'] = " ".join(tweet_separated) 
 
 	return remove_retweets(tweet_list)
 
@@ -134,7 +136,7 @@ def assign_subject_label(tweet_list: list):
 	economy = ['economy', 'jobs', 'tax', 'taxes', 'gdp', 'trade', 'deficit', 'debt', 'business']
 	covid = ['covid', 'covid-19', 'coronavirus', 'virus']
 	foreign_policy = ['china', 'eu', 'mexico', 'canada', 'trade', 'korea', 'nafta', 'usmca', 'border', 'immigration', 'military', 'war', 'asia', 'isis']
-	domestic_policy = ['obamacare', 'tax', 'taxes', 'immigration', 'immigrants', 'congress', 'republican', 'republicans', 'democrat', 'democrats', 'crime', 'border', 'amendment', 'military', 'healthcare']
+	domestic_policy = ['obamacare', 'tax', 'taxes', 'immigration', 'immigrants', 'congress', 'republican', 'republicans', 'democrat', 'democrats', 'crime', 'border', 'amendment', 'military', 'healthcare', 'election', 'vote']
 	impeachment = ['mueller', 'comey', 'witch', 'dossier', 'hoax', 'impeachment']
 
 	for index, tweet in enumerate(tweet_list):
@@ -392,7 +394,6 @@ def get_aggregated_tweets():
 
 if __name__ == '__main__':
 	tweet_list = read_csv('tweets.csv')
-	write_data_csv(tweet_list)
 	aggregated_month = group_tweets_by_month(tweet_list)
 	aggregated_subject = add_subject_aggregates(tweet_list)
 	write_aggregated_csv(aggregated_month, aggregated_subject)
