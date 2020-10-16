@@ -56,11 +56,11 @@
                 <ul class="navbar-nav mr-auto">
 
                     <!-- Dropdown to select tweet subject to filter on  -->
-                    <li class="nav-item dropdown" id="subject_select">
-                        <a class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" id="subject_select_menu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Subject
                         </a>
-                        <div class="dropdown-menu">
+                        <div class="dropdown-menu" id="subject_select">
                             <a class="dropdown-item" value="all">All</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" value="economy">The Economy</a>
@@ -74,7 +74,7 @@
                 </ul>
 
                 <!-- Toggle to select which attribute to display -->
-                <form id="toggle_" class="btn-group btn-group-toggle form-inline my-2 my-lg-0" data-toggle="buttons">
+                <form id="toggle_attribute" class="btn-group btn-group-toggle form-inline my-2 my-lg-0" data-toggle="buttons">
                   <label class="btn btn-secondary active">
                     <input type="radio" name="controlHeatmapType" value="sentiment" checked>Sentiment<br>
                   </label>
