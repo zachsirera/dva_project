@@ -113,19 +113,33 @@
 	function ready(events, aggregated_tweets, tweet_data) {
 
 		// listen for subject dropdown change
-		$("#subject_select a").click(function(){
+		$("#subject_select a").click(function() {
 			var new_subj = $(this)[0].getAttribute('value')
 			subject_change(new_subj);
 		});
 
+		// handle when the user changes the tweet subject: all, economy, covid, etc
 		function subject_change(subject) {
 
             svg_1.selectAll("*").remove();
 			build_bar_graph(events, aggregated_tweets, tweet_data, subject, 'sentiment');
 		}
 
+		// listen for attribute button change 
+		$(".attribute_btn").on('click', function() {
+			var new_attr = $(this)[0].getAttribute('value');
+			attr_change(new_attr);
+		})
+
+		// handle when the user changes the attribute they wish to visualize: sentiment, subjectivity, reading level
+		function attr_change(attr) {
+
+			svg_1.selectAll("*").remove();
+			build_bar_graph(events, aggregated_tweets, tweet_data, 'all', attr);
+		}
 
 
+		// initially build bar graph with default values
 		build_bar_graph(events, aggregated_tweets, tweet_data, 'all', 'sentiment');
 	}
 
@@ -260,50 +274,31 @@
 	        .attr("fill", theme.grey)
 	        .style("font-size", "12px");
 
-	    // Create shade legend for sentiment color scale 
-	    var sentiments = [0.6, 0.3, 0.0, -0.3, -0.6]
-	    g_1.selectAll("legend_squares")
-	    	.data(sentiments)
-	    	.enter()
-	    	.append("rect")
-	    	.attr("fill", function(d) { return sentiment_color_scale( d ); })
-	        .attr("x", width - margin.right - margin.left + 10)
-	        .attr("y", function(d, i) { return margin.top + i * 15 + 20; })
-	        .attr("width", 10)
-	        .attr("height", 10);
-	    g_1.append("text")
-	    	.attr("transform", "translate(0,0)")
-	        .attr("text-anchor", "start")
-	        .attr("x", width - margin.right - margin.left + 10)
-	        .attr("y", 12)
-	        .text("Sentiment")
-	        .attr("fill", theme.grey)
-	        .style("font-size", "15px");
-	    g_1.append("text")
-	    	.attr("transform", "translate(0,0)")
-	        .attr("text-anchor", "start")
-	        .attr("x", width - margin.right - margin.left + 25)
-	        .attr("y", 29)
-	        .text("Positive")
-	        .attr("fill", theme.grey)
-	        .style("font-size", "12px");
-	    g_1.append("text")
-	    	.attr("transform", "translate(0,0)")
-	        .attr("text-anchor", "start")
-	        .attr("x", width - margin.right - margin.left + 25)
-	        .attr("y", 90)
-	        .text("Negative")
-	        .attr("fill", theme.grey)
-	        .style("font-size", "12px");
-
-
-	    // Create shade legend for subjectivity color scale 
+	    // Create shade legend for attribute color scale 
+	    var sentiments = [0.6, 0.3, 0.0, -0.3, -0.6] 
 	    var subjectivities = [0.0, 0.2, 0.4, 0.6, 0.8]
+	    var grade_levels = [12, 10, 8, 6, 4]
 	    g_1.selectAll("legend_squares")
-	    	.data(subjectivities)
+	    	.data(function() {
+	    		if (attribute == 'sentiment') {
+	    			return sentiments;
+	    		} else if (attribute == 'subjectivity') {
+	    			return subjectivities;
+	    		} else if (attribute == 'grade_level') {
+	    			return grade_levels;
+	    		}
+	    	})
 	    	.enter()
 	    	.append("rect")
-	    	.attr("fill", function(d) { return subjectivity_color_scale( d ); })
+	    	.attr("fill", function(d) {
+	    		if (attribute == 'sentiment') {
+	    			return sentiment_color_scale( d );;
+	    		} else if (attribute == 'subjectivity') {
+	    			return subjectivity_color_scale( d );;
+	    		} else if (attribute == 'grade_level') {
+	    			return grade_level_color_sale( d );
+	    		}
+	    	})
 	        .attr("x", width - margin.right - margin.left + 10)
 	        .attr("y", function(d, i) { return margin.top + i * 15 + 170; })
 	        .attr("width", 10)
@@ -313,7 +308,15 @@
 	        .attr("text-anchor", "start")
 	        .attr("x", width - margin.right - margin.left + 10)
 	        .attr("y", 162)
-	        .text("Subjectivity")
+	        .text(function() {
+	    		if (attribute == 'sentiment') {
+	    			return "Sentiment";;
+	    		} else if (attribute == 'subjectivity') {
+	    			return "Subjectivity";;
+	    		} else if (attribute == 'grade_level') {
+	    			return "Reading Level";
+	    		}
+	    	})
 	        .attr("fill", theme.grey)
 	        .style("font-size", "15px");
 	    g_1.append("text")
@@ -321,7 +324,15 @@
 	        .attr("text-anchor", "start")
 	        .attr("x", width - margin.right - margin.left + 25)
 	        .attr("y", 179)
-	        .text("Positive")
+	        .text(function() {
+	    		if (attribute == 'sentiment') {
+	    			return "Positive";
+	    		} else if (attribute == 'subjectivity') {
+	    			return "Subjective";
+	    		} else if (attribute == 'grade_level') {
+	    			return "12th Grade";
+	    		}
+	    	})
 	        .attr("fill", theme.grey)
 	        .style("font-size", "12px");
 	    g_1.append("text")
@@ -329,7 +340,15 @@
 	        .attr("text-anchor", "start")
 	        .attr("x", width - margin.right - margin.left + 25)
 	        .attr("y", 240)
-	        .text("Negative")
+	        .text(function() {
+	    		if (attribute == 'sentiment') {
+	    			return "Negative";;
+	    		} else if (attribute == 'subjectivity') {
+	    			return "Objective";;
+	    		} else if (attribute == 'grade_level') {
+	    			return "4th Grade";
+	    		}
+	    	})
 	        .attr("fill", theme.grey)
 	        .style("font-size", "12px");
 
