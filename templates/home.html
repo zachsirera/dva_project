@@ -16,13 +16,17 @@
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js"></script>
 
+<!-- Import jQuery -->
+<script type='text/javascript' src='http://code.jquery.com/jquery-1.8.3.js'></script>
+
 <style>
 
 .d3-tip {
 	line-height: 1.5;
 	font-weight: 400;
 	font-family:"avenir next", Arial, sans-serif;
-	padding: 6px;
+	padding: 2px;
+	font-size: 11px;
 	background: rgba(0, 0, 0, 0.6);
 	color: #FFA500;
 	border-radius: 1px;
@@ -67,7 +71,11 @@
 	// define dimensions and axes  for bar graph 
 	var bar_graph_x = d3.scaleTime()
 		.range([margin.left, width - margin.right])
-		.domain(d3.extent(aggregated_tweets, function(d) { return parse_agg(d['month'])}));
+		.domain(d3.extent(aggregated_tweets, function(d) { 
+			if (d['subject'] == subject) {
+				return parse_agg(d['month'])
+			}
+		}));
 
 	var bg_x_axis = d3.axisBottom()
         .scale(bar_graph_x)
@@ -75,7 +83,11 @@
 
 	var bar_graph_y = d3.scaleLinear()
 		.range([height - margin.bottom, margin.top])
-		.domain(d3.extent(aggregated_tweets, function(d) { return +d['count']}));
+		.domain(d3.extent(aggregated_tweets, function(d) { 
+			if (d['subject'] == subject) {
+				return +d['count']
+			}
+		}));
 
 	var bg_y_axis = d3.axisLeft().scale(bar_graph_y);
 
@@ -106,9 +118,9 @@
 
 
 	// listen for dropdown change
-	d3.select("#subject_select")
-        .on("change", dropdownChange)
-
+	d3.select("#dropdown_menu").on("hide.bs.dropdown", function() {
+             console.log("hello"); // d3.select(this)
+         })
 
 
 
@@ -154,11 +166,10 @@
 
 
 
-
     // Add rectangles to bar graph
     var bar_spacing = 2;
     // var bar_width = 
-	g_1.selectAll("rect")
+	g_1.selectAll("bg_1_rect")
         .data(aggregated_tweets)
         .enter()
         .filter(function(d) { return d['subject'] == subject; })
@@ -166,15 +177,15 @@
         .attr("fill", function(d) { return sentiment_color_scale( +d['sentiment']); })
         .attr("x", function(d) { return bar_graph_x( parse_agg( d['month'])) - margin.left; })
         .attr("y", function(d) { return bar_graph_y( d['count']); })
-        .attr("width", 7)
+        .attr("width", ((width - margin.right - margin.left) / d3.selectAll("rect").size() ) - bar_spacing)
         .attr("height", function(d) { return  height - margin.top - margin.bottom - bar_graph_y(d['count']); })
         .on('mouseover',function(d){
 			d3.select(this).style('fill', theme.select)
-			tip.show(d);
+			tip.show(d, this);
 		})
 		.on('mouseout', function(d){
 			d3.select(this).style("fill", function(d) { return sentiment_color_scale( +d['sentiment']); })
-			tip.hide(d);
+			tip.hide(d, this);
 		});
 
     // Add event markers to bar graph
@@ -285,12 +296,7 @@
 
 	}
 
-	// event listener for the dropdown. Update bar graph and legend when selection changes.
-    function dropdownChange() {
-    	svg.selectAll("*").remove();
-    	console.log(d3.select(this).property("value"));
 
-    }
 
 </script>
 
