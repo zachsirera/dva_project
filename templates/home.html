@@ -1,38 +1,299 @@
 {% extends "layout.html" %}
 
+
+
 {% block title %}
 	Trump Tweets 
 {% endblock %}
 
+
+
+{% block head %}
+
+<!-- Import D3 library -->
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-dsv.v1.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js"></script>
+
+<style>
+
+.d3-tip {
+	line-height: 1.5;
+	font-weight: 400;
+	font-family:"avenir next", Arial, sans-serif;
+	padding: 6px;
+	background: rgba(0, 0, 0, 0.6);
+	color: #FFA500;
+	border-radius: 1px;
+	pointer-events: none;
+}
+
+</style>
+
+{% endblock %}
+
+
+
+
 {% block main %}
-	<div class="container" style="width: 80%">
-	<table class="table table-hover table-bordered">
-		<thead class="thead-dark">
-			<tr>
-				<th scope="col"> Month </th>
-				<th scope="col"> Tweets Posted </th>
-				<th scope="col"> Avg Sentiment </th>
-				<th scope="col"> Avg Subjectivity </th>
-				<th scope="col"> Avg Reading Ease </th>
-				<th scope="col"> Avg Reading Level </th>
-				<!-- <th scope="col"> Avg Tweet Length </th> Need to add this to the data structure -->
-			</tr>
-		</thead>
-		<tbody>
-			{% for row in tweet_list %}
-				<tr>
-					<td> {{ row['month'] }} </td>
-					<td> {{ row['count'] }} </td>
-					<td> {{ row['sentiment'] }} </td>
-					<td> {{ row['subjectivity'] }} </td>
-					<td> {{ row['reading_ease'] }} </td>
-					<td> {{ row['grade_level'] }} </td>
-					<!-- <td> {{ row['length'] }} </td> -->
-				</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-</div>
+
+<script type="text/javascript">
+	// define margin and dimensions for svg_1
+	var height = 300,
+		width = 1440,
+		margin = {top: 0, right: 100, bottom: 50, left: 65};
+	
+	// Data is transmitted by the flask backend. Might be the way to go over d3 csv promise loading 
+	var events = {{ events | tojson | safe }},
+		aggregated_tweets = {{ aggregated_tweets | tojson | safe }},
+		tweet_data = {{ tweet_data | tojson | safe }};
+
+
+	// Placeholder. Need to make this dynamic. 
+	var subject = 'all';
+
+	// Color scheme - Add more as needed 
+	var theme = {grey: '#696969', select: '#FF0000'};
+
+
+	// parse time from aggregated_tweets.csv, it's formated 10-2020 for October, 2020 
+	var parse_agg = d3.timeParse("%Y-%m");
+	var parse_events = d3.timeParse("%m-%d-%Y")
+
+
+
+
+	// define dimensions and axes  for bar graph 
+	var bar_graph_x = d3.scaleTime()
+		.range([margin.left, width - margin.right])
+		.domain(d3.extent(aggregated_tweets, function(d) { return parse_agg(d['month'])}));
+
+	var bg_x_axis = d3.axisBottom()
+        .scale(bar_graph_x)
+        .tickFormat(d3.timeFormat("%m %Y"));
+
+	var bar_graph_y = d3.scaleLinear()
+		.range([height - margin.bottom, margin.top])
+		.domain(d3.extent(aggregated_tweets, function(d) { return +d['count']}));
+
+	var bg_y_axis = d3.axisLeft().scale(bar_graph_y);
+
+	// define the color scale to use to display sentiment data 
+	var sentiment_color_scale = d3.scaleSequential(d3.interpolatePuOr).domain([-1,1]),
+		subjectivity_color_scale = d3.scaleSequential(d3.interpolatePiYG).domain([0,1]);
+	
+
+	// enter code to define tooltip
+	var tip = d3.tip()
+		.attr('class', 'd3-tip')
+		.offset([-10, 0])
+		.style("line-height", 1.5)
+		.style("background", "rgba(0, 0, 0, 0.75)")
+		.style("color", "white")
+		.style("padding", "10px")
+		.style("border-radius", "10px");
+
+	tip.html(d => `<strong>${d['month']}</strong><br>
+					${d['count']} tweets sent<br>
+					Sentiment: ${Math.round(+d['sentiment'] * 100)/100} <br>
+					Subjectivity: ${Math.round(+d['subjectivity'] * 100)/100} <br>
+					${Math.round(+d['grade_level'])}th grade reading level`); 
+	// tip.attr("x", d => {return bar_graph_x( parse_agg( d['month'])) - margin.left; });
+
+	// tip.attr("y", d => { return bar_graph_y( d['count']); });
+
+
+
+	// listen for dropdown change
+	d3.select("#subject_select")
+        .on("change", dropdownChange)
+
+
+
+
+	// enter code to create svg
+	// SVG 1 - Bar graph
+	var svg_1 = d3.select("body")
+		.append("svg")
+		.attr("width", width)
+		.attr("height", height);
+
+	svg_1.call(tip);
+
+	var g_1 = svg_1.append("g")
+		.attr("transform", "translate(" + margin.left + "," + 0 + ")");
+
+	// x axis
+	g_1.append("g")
+        .attr("class", "axis")
+        .attr('transform', 'translate(' + (0 - margin.left) + ',' + (height - margin.bottom) + ')') // (y(0))
+        .call(bg_x_axis);
+
+    // x axis label
+    svg_1.append("text")
+        .attr("tansform", "translate(0," + height + ")")
+        .attr("y", 290)
+        .attr("x", 720)
+        .attr("text-anchor", "middle")
+        .text("Month");
+
+    // y axis 
+    g_1.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(" + 0 + "," + 0 + ")")
+        .call(bg_y_axis)
+        
+    // Add the text label for Y axis
+    svg_1.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 25) //function() { return h / 2; })
+        .attr("x", -100)// function() { return margin / 2; })
+        .attr("text-anchor", "middle")
+        .text("Tweets Sent");
+
+
+
+
+    // Add rectangles to bar graph
+    var bar_spacing = 2;
+    // var bar_width = 
+	g_1.selectAll("rect")
+        .data(aggregated_tweets)
+        .enter()
+        .filter(function(d) { return d['subject'] == subject; })
+        .append("rect")
+        .attr("fill", function(d) { return sentiment_color_scale( +d['sentiment']); })
+        .attr("x", function(d) { return bar_graph_x( parse_agg( d['month'])) - margin.left; })
+        .attr("y", function(d) { return bar_graph_y( d['count']); })
+        .attr("width", 7)
+        .attr("height", function(d) { return  height - margin.top - margin.bottom - bar_graph_y(d['count']); })
+        .on('mouseover',function(d){
+			d3.select(this).style('fill', theme.select)
+			tip.show(d);
+		})
+		.on('mouseout', function(d){
+			d3.select(this).style("fill", function(d) { return sentiment_color_scale( +d['sentiment']); })
+			tip.hide(d);
+		});
+
+    // Add event markers to bar graph
+    g_1.selectAll("event_line")
+    	.data(events)
+    	.enter()
+    	.filter(function(d) { return d['subject'] == subject; })
+    	.append("line")
+    	.style("class", "dashed")
+    	.style("stroke", theme.grey)
+    	.style("stroke-width", 2)
+    	.attr('x1', function(d) { return bar_graph_x( parse_events( d['date'])) - margin.left; })
+	    .attr('y1', 0)
+	    .attr('x2', function(d) { return bar_graph_x( parse_events( d['date'])) - margin.left; })
+	    .attr('y2', height - margin.top - margin.bottom);
+
+	// Add labels to the event markers 
+	g_1.selectAll("event_label")
+		.data(events)
+		.enter()
+    	.filter(function(d) { return d['subject'] == subject; })
+    	.append("text")
+        .attr("transform", "translate(0,0)")
+        .attr("text-anchor", "end")
+        .attr("x", function(d) { return bar_graph_x( parse_events( d['date'])) - margin.left - 5; })
+        .attr("y", 25)
+        .text(function(d) { return d['title']; })
+        .attr("fill", theme.grey)
+        .style("font-size", "12px");
+
+    // Create shade legend for sentiment color scale 
+    var sentiments = [0.6, 0.3, 0.0, -0.3, -0.6]
+    g_1.selectAll("legend_squares")
+    	.data(sentiments)
+    	.enter()
+    	.append("rect")
+    	.attr("fill", function(d) { return sentiment_color_scale( d ); })
+        .attr("x", width - margin.right - margin.left + 10)
+        .attr("y", function(d, i) { return margin.top + i * 15 + 20; })
+        .attr("width", 10)
+        .attr("height", 10);
+    g_1.append("text")
+    	.attr("transform", "translate(0,0)")
+        .attr("text-anchor", "start")
+        .attr("x", width - margin.right - margin.left + 10)
+        .attr("y", 12)
+        .text("Sentiment")
+        .attr("fill", theme.grey)
+        .style("font-size", "15px");
+    g_1.append("text")
+    	.attr("transform", "translate(0,0)")
+        .attr("text-anchor", "start")
+        .attr("x", width - margin.right - margin.left + 25)
+        .attr("y", 29)
+        .text("Positive")
+        .attr("fill", theme.grey)
+        .style("font-size", "12px");
+    g_1.append("text")
+    	.attr("transform", "translate(0,0)")
+        .attr("text-anchor", "start")
+        .attr("x", width - margin.right - margin.left + 25)
+        .attr("y", 90)
+        .text("Negative")
+        .attr("fill", theme.grey)
+        .style("font-size", "12px");
+
+
+    // Create shade legend for subjectivity color scale 
+    var subjectivities = [0.0, 0.2, 0.4, 0.6, 0.8]
+    g_1.selectAll("legend_squares")
+    	.data(subjectivities)
+    	.enter()
+    	.append("rect")
+    	.attr("fill", function(d) { return subjectivity_color_scale( d ); })
+        .attr("x", width - margin.right - margin.left + 10)
+        .attr("y", function(d, i) { return margin.top + i * 15 + 170; })
+        .attr("width", 10)
+        .attr("height", 10);
+    g_1.append("text")
+    	.attr("transform", "translate(0,0)")
+        .attr("text-anchor", "start")
+        .attr("x", width - margin.right - margin.left + 10)
+        .attr("y", 162)
+        .text("Subjectivity")
+        .attr("fill", theme.grey)
+        .style("font-size", "15px");
+    g_1.append("text")
+    	.attr("transform", "translate(0,0)")
+        .attr("text-anchor", "start")
+        .attr("x", width - margin.right - margin.left + 25)
+        .attr("y", 179)
+        .text("Positive")
+        .attr("fill", theme.grey)
+        .style("font-size", "12px");
+    g_1.append("text")
+    	.attr("transform", "translate(0,0)")
+        .attr("text-anchor", "start")
+        .attr("x", width - margin.right - margin.left + 25)
+        .attr("y", 240)
+        .text("Negative")
+        .attr("fill", theme.grey)
+        .style("font-size", "12px");
+
+
+
+
+	function ready(events, aggregated_tweets, tweet_data) {
+
+	}
+
+	// event listener for the dropdown. Update bar graph and legend when selection changes.
+    function dropdownChange() {
+    	svg.selectAll("*").remove();
+    	console.log(d3.select(this).property("value"));
+
+    }
+
+</script>
+
 	
 	
 {% endblock %}

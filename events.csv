@@ -1,2 +1,3 @@
-date,title,economy,covid,foreign_policy,domestic_policy,impeachment,other,all
-12-18-2019,Trump is impeached,1,0,0,1,1,0,1
+date,title,subject
+12-18-2019,Trump is impeached,all
+11-08-2016,Trump wins 2016 election,all
