@@ -44,16 +44,6 @@
 
 <script type="text/javascript">
 
-	// define margin and dimensions for svg_1
-	var height = 225,
-		width = 1440,
-		margin = {top: 0, right: 100, bottom: 50, left: 65};
-
-
-	// Placeholder for subject and attribute for bar graph. Need to make this dynamic. 
-	var subject = 'all';
-	var attribute = 'grade_level'; 
-
 
 	// Color scheme - Add more as needed 
 	var theme = {grey: '#696969', select: '#FF0000'};
@@ -87,12 +77,29 @@
 
 	// enter code to create svg
 	// SVG 1 - Bar graph
+	// define margin and dimensions for svg_1
+	var svg_1_height = 225,
+		svg_1_width = 1440,
+		svg_1_margin = {top: 0, right: 100, bottom: 50, left: 65};
+
 	var svg_1 = d3.select("body")
 		.append("svg")
-		.attr("width", width)
-		.attr("height", height);
+		.attr("width", svg_1_width)
+		.attr("height", svg_1_height);
 
 	svg_1.call(tip);
+
+	// enter code to create svg
+	// SVG 2 - Scatter plot 
+	// define margin and dimensions for svg_2
+	var svg_2_height = 500,
+		svg_2_width = 500,
+		svg_2_margin = {top: 50, right: 50, bottom: 50, left: 65};
+
+	var svg_2 = d3.select("body")
+		.append("svg")
+		.attr("width", svg_2_width)
+		.attr("height", svg_2_height);
 
 
 	Promise.all([
@@ -107,12 +114,13 @@
 
 	function ready(events, aggregated_tweets, tweet_data) {
 
-		// var subj = 'all',
-		// 	attr = 'sentiment';
+		var default_subj = 'all',
+			default_attr = 'sentiment';
 
 
 		// initially build bar graph with default values
-		build_bar_graph(events, aggregated_tweets, tweet_data, 'all', 'sentiment');
+		build_bar_graph(events, aggregated_tweets, default_subj, default_attr);
+		build_scatter_plot(tweet_data, 'all', default_attr, 'retweet_count');
 
 
 		// listen for subject dropdown change
@@ -129,7 +137,9 @@
 		function subject_change(new_subject) {
 
             svg_1.selectAll("*").remove();
-			build_bar_graph(events, aggregated_tweets, tweet_data, new_subject, attr);
+            svg_2.selectAll("*").remove();
+			build_bar_graph(events, aggregated_tweets, new_subject, attr);
+			build_scatter_plot(tweet_data, new_subject, attr, 'retweet_count');
 		}
 
 		// listen for attribute button change 
@@ -142,24 +152,106 @@
 		function attr_change(new_attr, old_subject) {
 
 			svg_1.selectAll("*").remove();
-			build_bar_graph(events, aggregated_tweets, tweet_data, subj, new_attr);
+			svg_2.selectAll("*").remove();
+			build_bar_graph(events, aggregated_tweets, subj, new_attr);
+			build_scatter_plot(tweet_data, subj, new_attr, 'retweet_count');
 		}
+	}
+
+
+	function build_scatter_plot(tweet_data, subject, y_attribute, x_attribute) {
+
+
+		var g_2 = svg_2.append("g")
+			.attr("transform", "translate(" + svg_2_margin.left + "," + 0 + ")");
+
+
+		// define x axis for scatter plot 
+		var scatter_x = d3.scaleLinear()
+			.range([svg_2_margin.left, svg_2_width])
+			.domain(d3.extent(tweet_data, function(d) {
+				if (subject == 'all') {
+					return +d[x_attribute]
+				} else if (d[subject] == 1) {
+					return +d[x_attribute];
+				}
+			}));
+
+		var scatter_x_axis = d3.axisBottom().scale(scatter_x);
+
+		g_2.append("g")
+	        .attr("class", "axis")
+	        .attr('transform', 'translate(' + (0 - svg_2_margin.left) + ',' + (svg_2_height - svg_2_margin.bottom) + ')') 
+	        .call(scatter_x_axis);
+
+
+	    // y axis 
+		var scatter_y = d3.scaleLinear()
+			.range([svg_2_height - svg_2_margin.bottom, svg_2_margin.top])
+			.domain(d3.extent(tweet_data, function(d) {
+				if (subject == 'all') {
+					return +d[y_attribute];
+				} else if (d[subject] == 1) {
+					return +d[y_attribute];
+				}
+			}));
+
+
+		var scatter_y_axis = d3.axisLeft().scale(scatter_y);
+
+	   	g_2.append("g")
+	        .attr("class", "axis")
+	        .attr("transform", "translate(" + 0 + "," + 0 + ")")
+	        .call(scatter_y_axis);
+
+	    // add points on the scatter plot 
+	    g_2.selectAll("circle")
+	    	.data(tweet_data)
+	    	.enter()
+	    	.filter(function(d) { 
+	    		if ( subject == 'all') {
+	    			return d;
+	    		} else {
+	    			return +d[subject] == 1; 
+	    	}}) 
+	    	.append("circle")
+	    	.style("fill", "teal")
+	    	.style("opacity", 0.25)
+	    	.attr("cx", function(d) { return scatter_x( +d[x_attribute] ) - svg_2_margin.left; })
+	        .attr("cy", function(d) { return scatter_y( +d[y_attribute] ); })
+	        .attr("r", 2);
+
+	    // add labels to scatter plot
+	    // y axis 
+		svg_2.append("text")
+	        .attr("transform", "rotate(-90)")
+	        .attr("y", 25)
+	        .attr("x", -200)
+	        .attr("text-anchor", "middle")
+	        .text(y_attribute);
+
+	    // x axis label
+	    svg_2.append("text")
+	        .attr("tansform", "translate(0," + svg_1_height + ")")
+	        .attr("y", svg_2_height - 20)
+	        .attr("x", svg_2_width / 2)
+	        .attr("text-anchor", "middle")
+	        .text(x_attribute);
 
 	}
 
 
-
-    function build_bar_graph(events, aggregated_tweets, tweet_data, subject, attribute) {
+    function build_bar_graph(events, aggregated_tweets, subject, attribute) {
 
     	subj = subject;
     	attr = attribute;
 
     	var g_1 = svg_1.append("g")
-		.attr("transform", "translate(" + margin.left + "," + 0 + ")");
+			.attr("transform", "translate(" + svg_1_margin.left + "," + 0 + ")");
 
     	// define dimensions and axes  for bar graph 
 		var bar_graph_x = d3.scaleTime()
-			.range([margin.left, width - margin.right])
+			.range([svg_1_margin.left, svg_1_width - svg_1_margin.right])
 			.domain(d3.extent(aggregated_tweets, function(d) { 
 				if (d['subject'] == subject) {
 					return parse_agg(d['month'])
@@ -172,7 +264,7 @@
 
 
 		var bar_graph_y = d3.scaleLinear()
-			.range([height - margin.bottom, margin.top])
+			.range([svg_1_height - svg_1_margin.bottom, svg_1_margin.top])
 			.domain(d3.extent(aggregated_tweets, function(d) { 
 				if (d['subject'] == subject) {
 					return +d['count']
@@ -185,12 +277,12 @@
 		// x axis
 		g_1.append("g")
 	        .attr("class", "axis")
-	        .attr('transform', 'translate(' + (0 - margin.left) + ',' + (height - margin.bottom) + ')') // (y(0))
+	        .attr('transform', 'translate(' + (0 - svg_1_margin.left) + ',' + (svg_1_height - svg_1_margin.bottom) + ')') 
 	        .call(bg_x_axis);
 
 	    // x axis label
 	    svg_1.append("text")
-	        .attr("tansform", "translate(0," + height + ")")
+	        .attr("tansform", "translate(0," + svg_1_height + ")")
 	        .attr("y", 290)
 	        .attr("x", 720)
 	        .attr("text-anchor", "middle")
@@ -205,8 +297,8 @@
 	    // Add the text label for Y axis
 	    svg_1.append("text")
 	        .attr("transform", "rotate(-90)")
-	        .attr("y", 25) //function() { return h / 2; })
-	        .attr("x", -100)// function() { return margin / 2; })
+	        .attr("y", 25)
+	        .attr("x", -100)
 	        .attr("text-anchor", "middle")
 	        .text("Tweets Sent");
 
@@ -233,10 +325,10 @@
 	        		return grade_level_color_sale( +d[attribute]);
 	        	}; 
 	        })
-	        .attr("x", function(d) { return bar_graph_x( parse_agg( d['month'])) - margin.left; })
+	        .attr("x", function(d) { return bar_graph_x( parse_agg( d['month'])) - svg_1_margin.left; })
 	        .attr("y", function(d) { return bar_graph_y( d['count']); })
-	        .attr("width", ((width - margin.right - margin.left) / d3.selectAll("rect").size() ) - bar_spacing)
-	        .attr("height", function(d) { return  height - margin.top - margin.bottom - bar_graph_y(d['count']); })
+	        .attr("width", ((svg_1_width - svg_1_margin.right - svg_1_margin.left) / d3.selectAll("rect").size() ) - bar_spacing)
+	        .attr("height", function(d) { return  svg_1_height - svg_1_margin.top - svg_1_margin.bottom - bar_graph_y(d['count']); })
 	        .on('mouseover',function(d){
 				d3.select(this).style('fill', theme.select)
 				tip.show(d, this);
@@ -262,10 +354,10 @@
 	    	.style("class", "dashed")
 	    	.style("stroke", theme.grey)
 	    	.style("stroke-width", 2)
-	    	.attr('x1', function(d) { return bar_graph_x( parse_events( d['date'])) - margin.left; })
+	    	.attr('x1', function(d) { return bar_graph_x( parse_events( d['date'])) - svg_1_margin.left; })
 		    .attr('y1', 0)
-		    .attr('x2', function(d) { return bar_graph_x( parse_events( d['date'])) - margin.left; })
-		    .attr('y2', height - margin.top - margin.bottom);
+		    .attr('x2', function(d) { return bar_graph_x( parse_events( d['date'])) - svg_1_margin.left; })
+		    .attr('y2', svg_1_height - svg_1_margin.top - svg_1_margin.bottom);
 
 		// Add labels to the event markers 
 		g_1.selectAll("event_label")
@@ -275,7 +367,7 @@
 	    	.append("text")
 	        .attr("transform", "translate(0,0)")
 	        .attr("text-anchor", "end")
-	        .attr("x", function(d) { return bar_graph_x( parse_events( d['date'])) - margin.left - 5; })
+	        .attr("x", function(d) { return bar_graph_x( parse_events( d['date'])) - svg_1_margin.left - 5; })
 	        .attr("y", 25)
 	        .text(function(d) { return d['title']; })
 	        .attr("fill", theme.grey)
@@ -311,14 +403,14 @@
 	    			return grade_level_color_sale( d );
 	    		}
 	    	})
-	        .attr("x", width - margin.right - margin.left + 10)
-	        .attr("y", function(d, i) { return margin.top + i * 15 + top; })
+	        .attr("x", svg_1_width - svg_1_margin.right - svg_1_margin.left + 10)
+	        .attr("y", function(d, i) { return svg_1_margin.top + i * 15 + top; })
 	        .attr("width", 10)
 	        .attr("height", 10);
 	    g_1.append("text")
 	    	.attr("transform", "translate(0,0)")
 	        .attr("text-anchor", "start")
-	        .attr("x", width - margin.right - margin.left + 10)
+	        .attr("x", svg_1_width - svg_1_margin.right - svg_1_margin.left + 10)
 	        .attr("y", top - 5)
 	        .text(function() {
 	    		if (attribute == 'sentiment') {
@@ -334,7 +426,7 @@
 	    g_1.append("text")
 	    	.attr("transform", "translate(0,0)")
 	        .attr("text-anchor", "start")
-	        .attr("x", width - margin.right - margin.left + 25)
+	        .attr("x", svg_1_width - svg_1_margin.right - svg_1_margin.left + 25)
 	        .attr("y", top + 10)
 	        .text(function() {
 	    		if (attribute == 'sentiment') {
@@ -350,7 +442,7 @@
 	    g_1.append("text")
 	    	.attr("transform", "translate(0,0)")
 	        .attr("text-anchor", "start")
-	        .attr("x", width - margin.right - margin.left + 25)
+	        .attr("x", svg_1_width - svg_1_margin.right - svg_1_margin.left + 25)
 	        .attr("y", top + 70)
 	        .text(function() {
 	    		if (attribute == 'sentiment') {
