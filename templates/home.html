@@ -43,20 +43,17 @@
 {% block main %}
 
 <script type="text/javascript">
+
 	// define margin and dimensions for svg_1
-	var height = 300,
+	var height = 225,
 		width = 1440,
 		margin = {top: 0, right: 100, bottom: 50, left: 65};
-	
-	// Data is transmitted by the flask backend. Might be the way to go over d3 csv promise loading 
-	// var events = {{ events | tojson | safe }},
-	// 	aggregated_tweets = {{ aggregated_tweets | tojson | safe }},
-	// 	tweet_data = {{ tweet_data | tojson | safe }};
 
 
 	// Placeholder for subject and attribute for bar graph. Need to make this dynamic. 
 	var subject = 'all';
 	var attribute = 'grade_level'; 
+
 
 	// Color scheme - Add more as needed 
 	var theme = {grey: '#696969', select: '#FF0000'};
@@ -77,6 +74,7 @@
 		.style("padding", "10px")
 		.style("border-radius", "10px");
 
+
 	tip.html(d => `<strong>${d['month']}</strong><br>
 					${d['count']} tweets sent<br>
 					Sentiment: ${Math.round(+d['sentiment'] * 100)/100} <br>
@@ -84,9 +82,6 @@
 					${Math.round(+d['grade_level'])}th grade reading level`); 
 
 
-
-
-	// listen for attribute button change 
 
 
 
@@ -112,17 +107,29 @@
 
 	function ready(events, aggregated_tweets, tweet_data) {
 
+		// var subj = 'all',
+		// 	attr = 'sentiment';
+
+
+		// initially build bar graph with default values
+		build_bar_graph(events, aggregated_tweets, tweet_data, 'all', 'sentiment');
+
+
 		// listen for subject dropdown change
 		$("#subject_select a").click(function() {
-			var new_subj = $(this)[0].getAttribute('value')
+			// trying to update the dropdown button text to display the current selection, but can't figure out how. 
+			$(this).parents(".dropdown").find('.nav_link').html($(this).text());
+
+			var new_subj = $(this)[0].getAttribute('value');
 			subject_change(new_subj);
 		});
 
+
 		// handle when the user changes the tweet subject: all, economy, covid, etc
-		function subject_change(subject) {
+		function subject_change(new_subject) {
 
             svg_1.selectAll("*").remove();
-			build_bar_graph(events, aggregated_tweets, tweet_data, subject, 'sentiment');
+			build_bar_graph(events, aggregated_tweets, tweet_data, new_subject, attr);
 		}
 
 		// listen for attribute button change 
@@ -132,20 +139,20 @@
 		})
 
 		// handle when the user changes the attribute they wish to visualize: sentiment, subjectivity, reading level
-		function attr_change(attr) {
+		function attr_change(new_attr, old_subject) {
 
 			svg_1.selectAll("*").remove();
-			build_bar_graph(events, aggregated_tweets, tweet_data, 'all', attr);
+			build_bar_graph(events, aggregated_tweets, tweet_data, subj, new_attr);
 		}
 
-
-		// initially build bar graph with default values
-		build_bar_graph(events, aggregated_tweets, tweet_data, 'all', 'sentiment');
 	}
 
 
 
     function build_bar_graph(events, aggregated_tweets, tweet_data, subject, attribute) {
+
+    	subj = subject;
+    	attr = attribute;
 
     	var g_1 = svg_1.append("g")
 		.attr("transform", "translate(" + margin.left + "," + 0 + ")");
@@ -277,7 +284,12 @@
 	    // Create shade legend for attribute color scale 
 	    var sentiments = [0.6, 0.3, 0.0, -0.3, -0.6] 
 	    var subjectivities = [0.0, 0.2, 0.4, 0.6, 0.8]
-	    var grade_levels = [12, 10, 8, 6, 4]
+	    var grade_levels = [12, 9, 6, 3, 1]
+
+	    // define top of legend in case we change dimensions of chart
+	    var top = 50;
+
+	    // Create dynamic legend
 	    g_1.selectAll("legend_squares")
 	    	.data(function() {
 	    		if (attribute == 'sentiment') {
@@ -300,14 +312,14 @@
 	    		}
 	    	})
 	        .attr("x", width - margin.right - margin.left + 10)
-	        .attr("y", function(d, i) { return margin.top + i * 15 + 170; })
+	        .attr("y", function(d, i) { return margin.top + i * 15 + top; })
 	        .attr("width", 10)
 	        .attr("height", 10);
 	    g_1.append("text")
 	    	.attr("transform", "translate(0,0)")
 	        .attr("text-anchor", "start")
 	        .attr("x", width - margin.right - margin.left + 10)
-	        .attr("y", 162)
+	        .attr("y", top - 5)
 	        .text(function() {
 	    		if (attribute == 'sentiment') {
 	    			return "Sentiment";;
@@ -323,7 +335,7 @@
 	    	.attr("transform", "translate(0,0)")
 	        .attr("text-anchor", "start")
 	        .attr("x", width - margin.right - margin.left + 25)
-	        .attr("y", 179)
+	        .attr("y", top + 10)
 	        .text(function() {
 	    		if (attribute == 'sentiment') {
 	    			return "Positive";
@@ -339,14 +351,14 @@
 	    	.attr("transform", "translate(0,0)")
 	        .attr("text-anchor", "start")
 	        .attr("x", width - margin.right - margin.left + 25)
-	        .attr("y", 240)
+	        .attr("y", top + 70)
 	        .text(function() {
 	    		if (attribute == 'sentiment') {
 	    			return "Negative";;
 	    		} else if (attribute == 'subjectivity') {
 	    			return "Objective";;
 	    		} else if (attribute == 'grade_level') {
-	    			return "4th Grade";
+	    			return "1st Grade";
 	    		}
 	    	})
 	        .attr("fill", theme.grey)
