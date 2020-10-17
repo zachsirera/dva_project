@@ -42,6 +42,8 @@
 
 {% block main %}
 
+
+
 <script type="text/javascript">
 
 
@@ -115,12 +117,13 @@
 	function ready(events, aggregated_tweets, tweet_data) {
 
 		var default_subj = 'all',
-			default_attr = 'sentiment';
+			default_attr = 'sentiment',
+			default_data = 'retweet_count';
 
 
 		// initially build bar graph with default values
 		build_bar_graph(events, aggregated_tweets, default_subj, default_attr);
-		build_scatter_plot(tweet_data, 'all', default_attr, 'retweet_count');
+		build_scatter_plot(tweet_data, default_subj, default_attr, default_data);
 
 
 		// listen for subject dropdown change
@@ -139,7 +142,7 @@
             svg_1.selectAll("*").remove();
             svg_2.selectAll("*").remove();
 			build_bar_graph(events, aggregated_tweets, new_subject, attr);
-			build_scatter_plot(tweet_data, new_subject, attr, 'retweet_count');
+			build_scatter_plot(tweet_data, new_subject, attr, data);
 		}
 
 		// listen for attribute button change 
@@ -154,13 +157,27 @@
 			svg_1.selectAll("*").remove();
 			svg_2.selectAll("*").remove();
 			build_bar_graph(events, aggregated_tweets, subj, new_attr);
-			build_scatter_plot(tweet_data, subj, new_attr, 'retweet_count');
+			build_scatter_plot(tweet_data, subj, new_attr, data);
+		}
+
+		// listen for data button change 
+		$(".data_btn").on('click', function() {
+			var new_attr = $(this)[0].getAttribute('value');
+			data_change(new_attr);
+		})
+
+		// handle when the user changes the attribute they wish to visualize: sentiment, subjectivity, reading level
+		function data_change(new_data) {
+
+			svg_2.selectAll("*").remove();
+			build_scatter_plot(tweet_data, subj, attr, new_data);
 		}
 	}
 
 
 	function build_scatter_plot(tweet_data, subject, y_attribute, x_attribute) {
 
+		data = x_attribute;
 
 		var g_2 = svg_2.append("g")
 			.attr("transform", "translate(" + svg_2_margin.left + "," + 0 + ")");
@@ -219,7 +236,7 @@
 	    	.style("opacity", 0.25)
 	    	.attr("cx", function(d) { return scatter_x( +d[x_attribute] ) - svg_2_margin.left; })
 	        .attr("cy", function(d) { return scatter_y( +d[y_attribute] ); })
-	        .attr("r", 2);
+	        .attr("r", 4);
 
 	    // add labels to scatter plot
 	    // y axis 
@@ -233,7 +250,7 @@
 	    // x axis label
 	    svg_2.append("text")
 	        .attr("tansform", "translate(0," + svg_1_height + ")")
-	        .attr("y", svg_2_height - 20)
+	        .attr("y", svg_2_height - 10)
 	        .attr("x", svg_2_width / 2)
 	        .attr("text-anchor", "middle")
 	        .text(x_attribute);

@@ -74,6 +74,19 @@
                 </ul>
 
                 <!-- Toggle to select which attribute to display -->
+                <form id="toggle_data" class="btn-group btn-group-toggle form-inline my-2 my-lg-0" data-toggle="buttons" style="padding-right: 150px;">
+                  <label class="btn btn-secondary active data_btn" value="retweet_count" >
+                    <input type="radio" name="controlHeatmapType" checked>Retweets<br>
+                  </label>
+                  <label class="btn btn-secondary data_btn" value="favorite_count">
+                    <input type="radio" name="controlHeatmapType">Favorites<br>
+                  </label>
+                  <label class="btn btn-secondary data_btn" value="length">
+                    <input type="radio" name="controlHeatmapType">Length<br>
+                  </label>
+                </form>
+
+                <!-- Toggle to select which attribute to display -->
                 <form id="toggle_attribute" class="btn-group btn-group-toggle form-inline my-2 my-lg-0" data-toggle="buttons">
                   <label class="btn btn-secondary active attribute_btn" value="sentiment" >
                     <input type="radio" name="controlHeatmapType" checked>Sentiment<br>
