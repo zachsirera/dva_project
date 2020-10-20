@@ -47,7 +47,7 @@ def tokenize(tweet):
 
 def remove_stopwords(tweets):
     stop_words = stopwords.words('english')
-    stop_words.extend(['from', 'https', 'twitter', 'twitt', 'cont' ])
+    stop_words.extend(['from', 'https', 'twitter', 'twitt', 'cont', 'tinyurl' ])
     return [[word for word in simple_preprocess(str(tweet)) if word not in stop_words] for tweet in tweets]
 
 def rejoin_words(row):
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
 
     # Read csv into dataframe
-    df = pd.read_csv('tweets.csv').dropna()
+    df = pd.read_csv('tweets.csv', quotechar='', quoting=3).dropna()
     df_subjects = pd.read_csv('tweet_data.csv')
 
     # Convert data types and merge dataframes
