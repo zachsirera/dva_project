@@ -119,8 +119,7 @@
 		var default_subj = 'all',
 			default_attr = 'sentiment',
 			default_data = 'retweet_count';
-
-
+	
 		// initially build bar graph with default values
 		build_bar_graph(events, aggregated_tweets, default_subj, default_attr);
 		build_scatter_plot(tweet_data, default_subj, default_attr, default_data);
@@ -262,7 +261,38 @@
 
     	subj = subject;
     	attr = attribute;
-
+	    var bar_spacing = 2;
+		
+		//Getting the number of months in the data
+		var parse_month_as_date = d3.timeParse("%Y-%m-%d")
+		var minDate = d3.min(aggregated_tweets.map(function(d) {if (d['subject'] == subject) {return parse_month_as_date(d['month']+"-01")}}));
+		var maxDate = d3.max(aggregated_tweets.map(function(d) {if (d['subject'] == subject) {return parse_month_as_date(d['month']+"-01")}}));
+		var diff = Math.floor(maxDate.getTime() - minDate.getTime());
+		var milliSecondsInAday = 1000 * 60 * 60 * 24;
+		var totMonths = Math.ceil(diff/milliSecondsInAday/31);
+		var totDays = Math.ceil(diff/milliSecondsInAday);
+		console.log(minDate);
+		console.log(maxDate);
+		console.log(totMonths);
+		
+		var getDaysInMonth = function(month){
+		
+			var date = parse_month_as_date(month+"-01");
+			var toReturn = d3.timeDays(date, d3.timeMonth.offset(date,1),1).length;
+				
+			return toReturn;
+		};
+		
+		var getBarWidth = function(month) {
+			var days = getDaysInMonth(month)
+			console.log("month "+month.toString());
+			console.log("days "+days.toString());
+			result = ((svg_1_width - svg_1_margin.right - svg_1_margin.left)*(days/totDays)) - (bar_spacing);
+			console.log("width "+result.toString());
+			return result;
+		
+		}
+		;
     	var g_1 = svg_1.append("g")
 			.attr("transform", "translate(" + svg_1_margin.left + "," + 0 + ")");
 
@@ -326,7 +356,7 @@
 				.domain(d3.extent(aggregated_tweets, function(d) { return +d['grade_level']; }));
 
 	    // Add rectangles to bar graph
-	    var bar_spacing = 2;
+
 	    // var bar_width = 
 		g_1.selectAll("bg_1_rect")
 	        .data(aggregated_tweets)
@@ -344,8 +374,9 @@
 	        })
 	        .attr("x", function(d) { return bar_graph_x( parse_agg( d['month'])) - svg_1_margin.left; })
 	        .attr("y", function(d) { return bar_graph_y( d['count']); })
-	        .attr("width", ((svg_1_width - svg_1_margin.right - svg_1_margin.left) / d3.selectAll("rect").size() ) - bar_spacing)
+	        .attr("width", function(d) {return getBarWidth(d['month']);} )
 	        .attr("height", function(d) { return  svg_1_height - svg_1_margin.top - svg_1_margin.bottom - bar_graph_y(d['count']); })
+			.attr("class",function(d) { return getDaysInMonth( d['month']);})
 	        .on('mouseover',function(d){
 				d3.select(this).style('fill', theme.select)
 				tip.show(d, this);
