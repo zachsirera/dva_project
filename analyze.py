@@ -448,10 +448,10 @@ def define_buckets(tweet_list: list, threshold: float):
 
 	punctuation = '''!()-[]{};:'", <>./?@#$%^&*_~'''
 
-	# don't want to count articles, prepositions, etc 
-	non_words = ['the', 'a', 'an',  'to', 'in', 'into', 'on', 'onto', 'at', 'for', 'by', 'and', 'or', 'is', 'are', 'am', 'were', 'was', 'of', 'has', 'been', 'so', 'be', 'it', "it's", 'who', 'i', 'we', 'this', 'that', 'our', 'mine']
-
 	labels = ['covid', 'domestic_policy', 'foreign_policy', 'economy', 'impeachment']
+
+	# don't want to count articles, prepositions, etc 
+	non_words = open('buckets/nonwords.txt', 'r').read().splitlines()
 
 	covid_labels = open('buckets/covid.txt', 'r').read().splitlines()
 	domestic_policy_labels = open('buckets/domestic_policy.txt', 'r').read().splitlines()
