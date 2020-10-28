@@ -1,0 +1,9 @@
+economy
+jobs
+tax
+taxes
+gdp
+trade
+deficit
+debt
+business

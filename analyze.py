@@ -8,6 +8,8 @@ import textstat
 
 from textblob import TextBlob
 
+from collections import Counter
+
 
 
 
@@ -308,13 +310,13 @@ def add_subject_aggregates(tweet_list: list):
 	return results
 
 
-def write_aggregated_csv(aggregated_month: dict, aggregated_subject: dict):
+def write_aggregated_csv(aggregated_month: dict, aggregated_subject: dict, filename: str):
 	''' update a csv with aggregated data ''' 
 
 	csv_columns = ['month', 'count', 'sentiment', 'subjectivity', 'reading_ease', 'grade_level', 'retweet_count', 'favorite_count', 'length', 'subject']
 
 	try:
-		with open('aggregated_tweets.csv', 'w', newline='') as f:
+		with open(filename, 'w', newline='') as f:
 			csv_writer = csv.writer(f, delimiter=",")
 			csv_writer.writerow(csv_columns)
 			
@@ -368,8 +370,173 @@ def write_data_csv(tweet_list: list):
 	return 
 
 
+def aggregate_day(tweet_list: list):
+	aggregated = dict()
+
+	for tweet in tweet_list:
+		try: 
+			date = tweet['created_at'].split(" ")[0].split("-")
+
+			try:
+				day = f'{date[0]}-{date[1]}'
+				data = aggregated[day] 
+
+				new_subj = increment(data['count'], data['subjectivity'], tweet['subjectivity'])
+				new_sent = increment(data['count'], data['sentiment'], tweet['sentiment'])
+				new_reading = increment(data['count'], data['reading_ease'], tweet['reading_ease'])
+				new_grade = increment(data['count'], data['grade_level'], tweet['grade_level'])
+				new_retweet_ct = increment(data['count'], data['retweet_count'], int(tweet['retweet_count']))
+				new_favorite_ct = increment(data['count'], data['favorite_count'], int(tweet['favorite_count']))
+				new_length = increment(data['count'], data['length'], int(tweet['length']))
+
+				data['count'] += 1
+				data['subjectivity'] = new_subj
+				data['sentiment'] = new_sent
+				data['reading_ease'] = new_reading
+				data['grade_level'] = new_grade
+				data['retweet_count'] = new_retweet_ct
+				data['favorite_count'] = new_favorite_ct
+				data['length'] = new_length
+				data['subject'] = 'all'
+
+				aggregated[day] = data
+			except KeyError:
+				# Using this catch to add new objects to the dictionary
+				aggregated[day] = {
+					'count': 1, 
+					'sentiment': float(tweet['sentiment']), 
+					'subjectivity': float(tweet['subjectivity']),
+					'reading_ease': float(tweet['reading_ease']), 
+					'grade_level': float(tweet['grade_level']),
+					'retweet_count': int(tweet['retweet_count']),
+					'favorite_count': int(tweet['favorite_count']),
+					'length': int(tweet['length']),
+					'subject': 'all'
+				}
+				
+			except IndexError:
+				# Tweets with improperly formatted dates won't be aggregated 
+				pass
+
+		except AttributeError:
+			# Tweets with no date won't be aggregated 
+			pass
+
+	return aggregated
+
+def get_most_common_words(tweet_list: list, n: int):
+	''' get the list of n most common words trump tweets '''
+
+	all_words = []
+
+	# don't want to count articles, prepositions, etc 
+	non_words = ['the', 'a', 'an',  'to', 'in', 'into', 'on', 'onto', 'at', 'for', 'by', 'and', 'or', 'is', 'are', 'am', 'were', 'was', 'of']
+
+	for tweet in tweet_list:
+		for word in tweet['text'].lower().split(" "):
+			if word in non_words:
+				pass
+			else:
+				all_words.append(word)
+
+	return {x: count for x, count in Counter(all_words).items() if count >= n}
 
 
+
+def define_buckets(tweet_list: list, threshold: float): 
+	''' function to progressively redefine what words that are used to categorize tweets '''
+
+	punctuation = '''!()-[]{};:'", <>./?@#$%^&*_~'''
+
+	# don't want to count articles, prepositions, etc 
+	non_words = ['the', 'a', 'an',  'to', 'in', 'into', 'on', 'onto', 'at', 'for', 'by', 'and', 'or', 'is', 'are', 'am', 'were', 'was', 'of', 'has', 'been', 'so', 'be', 'it', "it's", 'who', 'i', 'we', 'this', 'that', 'our', 'mine']
+
+	labels = ['covid', 'domestic_policy', 'foreign_policy', 'economy', 'impeachment']
+
+	covid_labels = open('buckets/covid.txt', 'r').read().splitlines()
+	domestic_policy_labels = open('buckets/domestic_policy.txt', 'r').read().splitlines()
+	foreign_policy_labels = open('buckets/foreign_policy.txt', 'r').read().splitlines()
+	economy_labels = open('buckets/economy.txt', 'r').read().splitlines()
+	impeachment_labels = open('buckets/impeachment.txt', 'r').read().splitlines()
+
+	counts = {label: 0 for label in labels}
+
+	cowords = {label: [] for label in labels}
+
+	for tweet in tweet_list:
+
+		for label in labels: 
+			counts[label] += tweet[label]
+
+		for word in tweet['text'].lower().split(" "):
+
+			for char in word:
+				if char in punctuation:  
+					word = word.replace(char, "")
+
+			if word in non_words:
+				pass
+			else:
+				for label in labels:
+					if tweet[label] == 1:
+						cowords[label].append(word)
+				
+
+	
+	cowords_count = {label: dict(Counter(cowords[label])) for label in labels}
+
+	cowords_ratio = {label: dict() for label in labels}
+
+	for label in labels:
+		for coword in cowords_count[label]:
+			cowords_ratio[label][coword] = cowords_count[label][coword] / counts[label]
+		
+	new_covid_labels = [word for word in cowords_ratio['covid'] if cowords_ratio['covid'][word] >= threshold and word not in covid_labels]
+	new_domestic_policy_labels = [word for word in cowords_ratio['domestic_policy'] if cowords_ratio['domestic_policy'][word] >= threshold and word not in domestic_policy_labels]
+	new_foreign_policy_labels = [word for word in cowords_ratio['foreign_policy'] if cowords_ratio['foreign_policy'][word] >= threshold and word not in foreign_policy_labels]
+	new_economy_labels = [word for word in cowords_ratio['economy'] if cowords_ratio['economy'][word] >= threshold and word not in economy_labels]
+	new_impeachment_labels = [word for word in cowords_ratio['impeachment'] if cowords_ratio['impeachment'][word] >= threshold and word not in impeachment_labels]
+
+	if len(new_covid_labels) > 0:
+		with open('buckets/covid.txt', 'a') as covid_file:
+			for word in new_covid_labels:
+				covid_file.write(word)
+				covid_file.write('\n')
+
+	if len(new_domestic_policy_labels) > 0:
+		with open('buckets/domestic_policy.txt', 'a') as domestic_policy_file:
+			for word in new_domestic_policy_labels:
+				domestic_policy_file.write(word)
+				domestic_policy_file.write('\n')
+
+	if len(new_foreign_policy_labels) > 0:
+		with open('buckets/foreign_policy.txt', 'a') as foreign_policy_file:
+			for word in new_foreign_policy_labels:
+				foreign_policy_file.write(word)
+				foreign_policy_file.write('\n')
+
+	if len(new_economy_labels) > 0:
+		with open('buckets/economy.txt', 'a') as economy_file:
+			for word in new_economy_labels:
+				economy_file.write(word)
+				economy_file.write('\n')
+
+	if len(new_impeachment_labels) > 0:
+		with open('buckets/impeachment.txt', 'a') as impeachment_file:
+			for word in new_impeachment_labels:
+				impeachment_file.write(word)
+				impeachment_file.write('\n')
+
+	return len(new_covid_labels) + len(new_domestic_policy_labels) + len(new_foreign_policy_labels) + len(new_economy_labels) + len(new_impeachment_labels)
+
+
+def update_buckets(tweet_list: list, threshold: float):
+	''' call the define buckets function to recursively update the buckets until no more changes'''
+
+	result = 1
+
+	while result != 0:
+		result = define_buckets(tweet_list, threshold)
 
 
 
@@ -377,8 +544,12 @@ if __name__ == '__main__':
 	tweet_list = read_csv('tweets.csv')
 	# aggregated_month = group_tweets_by_month(tweet_list)
 	# aggregated_subject = add_subject_aggregates(tweet_list)
-	# write_aggregated_csv(aggregated_month, aggregated_subject)
-	write_data_csv(tweet_list)
+	# write_aggregated_csv(aggregated_month, aggregated_subject, 'aggregated_tweets.csv')
+	# write_data_csv(tweet_list)
+	# aggregated_day = aggregate_day(tweet_list)
+	# write_aggregated_csv(aggregate_day, aggregated_subject, 'calendar_tweets.csv')
+	update_buckets(tweet_list, 0.1)
+
 	pass
 
 	
