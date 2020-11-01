@@ -102,6 +102,8 @@ def load_model(subject: str):
 
 
 
+
+
 def update_all_classifiers(tweet_list: list): 
 	''' call this function to update all classifiers and then save them to the disk ''' 
 
@@ -145,36 +147,24 @@ def update_all_classifiers(tweet_list: list):
 	save_model(impeachment_classifier, "impeachment")
 
 
+def plot_prob_dist(tweet_list: list): 
+	''' ''' 
 
-if __name__ == '__main__':
-
-	# get tweets and split into a training set
-	# training set is all tweets that are labeled by the matching algorithm already
-	tweet_list = analyze.read_csv('tweets.csv')
-	training_set = get_training_set(tweet_list)
-	training_text_only = [tweet['text'] for tweet in training_set]
-
-	# load the count vectorizer 
-	cv = CountVectorizer(strip_accents='ascii', token_pattern=u'(?ui)\\b\\w*[a-z]+\\w*\\b', lowercase=True, stop_words='english')
-	cv.fit_transform(training_text_only)
-	
-	# load all models 
 	economy_classifier = load_model("economy")
 	covid_classifier = load_model("covid")
 	foreign_policy_classifier = load_model("foreign_policy")
 	domestic_policy_classifier = load_model("domestic_policy")
 	impeachment_classifier = load_model("impeachment")
+	vectorizer = load_model("vectorizer")
 
-	# predict probability of the rest of the tweet_list for each subject
 	all_text_only = [tweet['text'] for tweet in tweet_list]
-	vectors = cv.transform(all_text_only)
+	vectors = vectorizer.transform(all_text_only)
 
 	economy_probs = predict_prob(economy_classifier, vectors)
 	covid_probs = predict_prob(covid_classifier, vectors)
 	foreign_probs = predict_prob(foreign_policy_classifier, vectors)
 	domestic_probs = predict_prob(domestic_policy_classifier, vectors)
 	impeachment_probs = predict_prob(impeachment_classifier, vectors)
-
 
 	plt.hist(economy_probs[:, 1])
 	plt.title("Economy")
@@ -208,13 +198,16 @@ if __name__ == '__main__':
 
 
 
-	# economy_
-	# covid_
-	# foreign_
-	# domestic_
-	# impeachment_
+if __name__ == '__main__':
+
+	# get tweets and split into a training set
+	# training set is all tweets that are labeled by the matching algorithm already
+	tweet_list = analyze.read_csv('tweets.csv')
 
 
+
+
+	pass
 	
 
 
