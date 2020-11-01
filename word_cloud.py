@@ -128,6 +128,7 @@ if __name__ == "__main__":
         create_cloud(df_year, year)
         for subject in SUBJECTS:
             df_current_subject = df_year[(df_year[subject] == 1)]
+            # Create word cloud for the subject only if there are > 5 tweets
             if df_current_subject.shape[0] > 5:
                 create_cloud(df_current_subject, f"{year}_{subject}")
 

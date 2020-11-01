@@ -244,7 +244,18 @@
 	        .attr("y", 25)
 	        .attr("x", -200)
 	        .attr("text-anchor", "middle")
-	        .text(y_attribute);
+            .text(function() {
+	    		if (y_attribute === 'sentiment') {
+	    			return "Sentiment";
+	    		} else if (y_attribute === 'subjectivity') {
+	    			return "Subjectivity";
+	    		} else if (y_attribute === 'grade_level') {
+	    			return "Reading Level"
+	    		}
+	    	});
+
+
+	        {#.text(y_attribute);#}
 
 	    // x axis label
 	    svg_2.append("text")
@@ -252,7 +263,16 @@
 	        .attr("y", svg_2_height - 10)
 	        .attr("x", svg_2_width / 2)
 	        .attr("text-anchor", "middle")
-	        .text(x_attribute);
+            .text(function() {
+	    		if (x_attribute === 'retweet_count') {
+	    			return "# of Retweets";
+	    		} else if (x_attribute === 'favorite_count') {
+	    			return "# of Favorites";
+	    		} else if (x_attribute === 'length') {
+	    			return "Tweet Length";
+	    		}
+	    	});
+	        {#.text(x_attribute);#}
 
 	}
 
