@@ -51,7 +51,7 @@
 	var theme = {grey: '#696969', select: '#FF0000'};
 
 
-	// parse time from aggregated_tweets.csv, it's formated 10-2020 for October, 2020 
+	// parse time from aggregated_tweets.csv, it's formatted 10-2020 for October, 2020
 	var parse_agg = d3.timeParse("%Y-%m");
 	var parse_events = d3.timeParse("%m-%d-%Y")
 	
@@ -71,7 +71,7 @@
 					${d['count']} tweets sent<br>
 					Sentiment: ${Math.round(+d['sentiment'] * 100)/100} <br>
 					Subjectivity: ${Math.round(+d['subjectivity'] * 100)/100} <br>
-					${Math.round(+d['grade_level'])}th grade reading level`); 
+					${Math.round(+d['grade_level'])}th grade reading level`);
 
 
 
@@ -82,7 +82,7 @@
 	// define margin and dimensions for svg_1
 	var svg_1_height = 225,
 		svg_1_width = 1440,
-		svg_1_margin = {top: 0, right: 100, bottom: 50, left: 65};
+		svg_1_margin = {top: 0, right: 110, bottom: 50, left: 65};
 
 	var svg_1 = d3.select("body")
 		.append("svg")
@@ -96,7 +96,7 @@
 	// define margin and dimensions for svg_2
 	var svg_2_height = 500,
 		svg_2_width = 500,
-		svg_2_margin = {top: 50, right: 50, bottom: 50, left: 65};
+		svg_2_margin = {top: 50, right: 50, bottom: 50, left: 75};
 
 	var svg_2 = d3.select("body")
 		.append("svg")
@@ -174,9 +174,9 @@
 	}
 
 
-	function build_scatter_plot(tweet_data, subject, y_attribute, x_attribute) {
+	function build_scatter_plot(tweet_data, subject, x_attribute, y_attribute) {
 
-		data = x_attribute;
+		data = y_attribute;
 
 		var g_2 = svg_2.append("g")
 			.attr("transform", "translate(" + svg_2_margin.left + "," + 0 + ")");
@@ -184,7 +184,7 @@
 
 		// define x axis for scatter plot 
 		var scatter_x = d3.scaleLinear()
-			.range([svg_2_margin.left, svg_2_width])
+			.range([svg_2_margin.left, svg_2_width - svg_2_margin.right]) // added margin.right
 			.domain(d3.extent(tweet_data, function(d) {
 				if (subject == 'all') {
 					return +d[x_attribute]
@@ -197,7 +197,7 @@
 
 		g_2.append("g")
 	        .attr("class", "axis")
-	        .attr('transform', 'translate(' + (0 - svg_2_margin.left) + ',' + (svg_2_height - svg_2_margin.bottom) + ')') 
+	        .attr('transform', 'translate(' + (0 - svg_2_margin.left ) + ',' + (svg_2_height - svg_2_margin.bottom) + ')')
 	        .call(scatter_x_axis);
 
 
@@ -228,7 +228,7 @@
 	    		if ( subject == 'all') {
 	    			return d;
 	    		} else {
-	    			return +d[subject] == 1; 
+	    			return +d[subject] == 1;
 	    	}}) 
 	    	.append("circle")
 	    	.style("fill", "teal")
@@ -245,16 +245,18 @@
 	        .attr("x", -200)
 	        .attr("text-anchor", "middle")
             .text(function() {
-	    		if (y_attribute === 'sentiment') {
-	    			return "Sentiment";
-	    		} else if (y_attribute === 'subjectivity') {
-	    			return "Subjectivity";
-	    		} else if (y_attribute === 'grade_level') {
-	    			return "Reading Level"
+	    		if (y_attribute == 'retweet_count') {
+	    			return "# of Retweets";
+	    		} else if (y_attribute == 'favorite_count') {
+	    			return "# of Favorites";
+	    		} else if (y_attribute == 'length') {
+	    			return "Tweet Length";
 	    		}
+	    		else
+                {
+                    return y_attribute;
+                }
 	    	});
-
-
 	        {#.text(y_attribute);#}
 
 	    // x axis label
@@ -264,13 +266,17 @@
 	        .attr("x", svg_2_width / 2)
 	        .attr("text-anchor", "middle")
             .text(function() {
-	    		if (x_attribute === 'retweet_count') {
-	    			return "# of Retweets";
-	    		} else if (x_attribute === 'favorite_count') {
-	    			return "# of Favorites";
-	    		} else if (x_attribute === 'length') {
-	    			return "Tweet Length";
+	    		if (x_attribute == 'sentiment') {
+	    			return "Sentiment";
+	    		} else if (x_attribute == 'subjectivity') {
+	    			return "Subjectivity";
+	    		} else if (x_attribute == 'grade_level') {
+	    			return "Reading Level"
 	    		}
+	    		else
+                {
+                    return x_attribute;
+                }
 	    	});
 	        {#.text(x_attribute);#}
 
@@ -390,7 +396,7 @@
 	        		return subjectivity_color_scale( +d[attribute] );
 	        	} else if (attribute == 'grade_level') {
 	        		return grade_level_color_sale( +d[attribute]);
-	        	}; 
+	        	};
 	        })
 	        .attr("x", function(d) { return bar_graph_x( parse_agg( d['month'])) - svg_1_margin.left; })
 	        .attr("y", function(d) { return bar_graph_y( d['count']); })
