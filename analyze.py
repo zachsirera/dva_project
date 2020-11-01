@@ -10,6 +10,8 @@ from textblob import TextBlob
 
 from collections import Counter
 
+# import files from the project directory
+import classify
 
 
 
@@ -131,55 +133,96 @@ def get_tweet_complexity(tweet_list: list):
 
 
 
+# def assign_subject_label(tweet_list: list):
+# 	''' assign a subject label if applicable '''
+
+# 	# Add other keywords (all lowercase) to these lists to classify tweets 
+# 	# Don't add other lists without restructuring the csv writer functions  
+# 	economy = ['economy', 'jobs', 'tax', 'taxes', 'gdp', 'trade', 'deficit', 'debt', 'business']
+# 	covid = ['covid', 'covid-19', 'coronavirus', 'virus']
+# 	foreign_policy = ['china', 'eu', 'mexico', 'canada', 'trade', 'korea', 'nafta', 'usmca', 'border', 'immigration', 'military', 'war', 'asia', 'isis']
+# 	domestic_policy = ['obamacare', 'tax', 'taxes', 'immigration', 'immigrants', 'congress', 'republican', 'republicans', 'democrat', 'democrats', 'crime', 'border', 'amendment', 'military', 'healthcare', 'election', 'vote']
+# 	impeachment = ['mueller', 'comey', 'witch', 'dossier', 'hoax', 'impeachment']
+
+
+# 	for index, tweet in enumerate(tweet_list):
+# 		if tweet['text'] != None:
+# 			counter = 0
+# 			tweet_words = tweet['text'].lower().split(" ")
+# 			tweet['economy'] = 0
+# 			tweet['covid'] = 0
+# 			tweet['foreign_policy'] = 0
+# 			tweet['domestic_policy'] = 0
+# 			tweet['impeachment'] = 0
+# 			tweet['other'] = 1
+
+# 			for word in tweet_words:
+# 				if word in economy:
+# 					tweet['economy'] = 1
+# 					counter += 1
+# 				if word in covid:
+# 					tweet['covid'] = 1
+# 					counter += 1
+# 				if word in foreign_policy:
+# 					tweet['foreign_policy'] = 1
+# 					counter += 1
+# 				if word in domestic_policy:
+# 					tweet['domestic_policy'] = 1
+# 					counter += 1
+# 				if word in impeachment:
+# 					tweet['impeachment'] = 1
+# 					counter += 1
+# 				if counter != 0:
+# 					tweet['other'] = 0
+
+# 	return tweet_list
+
 def assign_subject_label(tweet_list: list):
-	''' assign a subject label if applicable '''
+	''' Use trained Naive-Bayes Classifiers to assign tweet labels '''
 
-	# Add other keywords (all lowercase) to these lists to classify tweets 
-	# Don't add other lists without restructuring the csv writer functions  
-	economy = ['economy', 'jobs', 'tax', 'taxes', 'gdp', 'trade', 'deficit', 'debt', 'business']
-	covid = ['covid', 'covid-19', 'coronavirus', 'virus']
-	foreign_policy = ['china', 'eu', 'mexico', 'canada', 'trade', 'korea', 'nafta', 'usmca', 'border', 'immigration', 'military', 'war', 'asia', 'isis']
-	domestic_policy = ['obamacare', 'tax', 'taxes', 'immigration', 'immigrants', 'congress', 'republican', 'republicans', 'democrat', 'democrats', 'crime', 'border', 'amendment', 'military', 'healthcare', 'election', 'vote']
-	impeachment = ['mueller', 'comey', 'witch', 'dossier', 'hoax', 'impeachment']
+	# Load classifiers and vectorizer from storage
+	covid_classifier = classify.load_model("covid")
+	economy_classifier = classify.load_model("economy")
+	foreign_classifier = classify.load_model("foreign")
+	domestic_classifier = classify.load_model("domestic")
+	impeachment_classifier = classify.load_model("impeachment")
+	vectorizer = classify.load_model("vectorizer")
 
-	#### Use this when we want to implement the recursive overlapping classifier
-	# covid_labels = open('buckets/covid.txt', 'r').read().splitlines()
-	# domestic_policy_labels = open('buckets/domestic_policy.txt', 'r').read().splitlines()
-	# foreign_policy_labels = open('buckets/foreign_policy.txt', 'r').read().splitlines()
-	# economy_labels = open('buckets/economy.txt', 'r').read().splitlines()
-	# impeachment_labels = open('buckets/impeachment.txt', 'r').read().splitlines()
+	# prepare the tweet data and vectorize it
+	all_text_only = [tweet['text'] for tweet in tweet_list]
+	vectors = vectorizer.transform(all_text_only)
+
+	# predict probabilities 
+	economy_probs = predict_prob(economy_classifier, vectors)
+	covid_probs = predict_prob(covid_classifier, vectors)
+	foreign_probs = predict_prob(foreign_policy_classifier, vectors)
+	domestic_probs = predict_prob(domestic_policy_classifier, vectors)
+	impeachment_probs = predict_prob(impeachment_classifier, vectors)
+
+	threshold = 0.9 
 
 	for index, tweet in enumerate(tweet_list):
-		if tweet['text'] != None:
-			counter = 0
-			tweet_words = tweet['text'].lower().split(" ")
-			tweet['economy'] = 0
-			tweet['covid'] = 0
-			tweet['foreign_policy'] = 0
-			tweet['domestic_policy'] = 0
-			tweet['impeachment'] = 0
-			tweet['other'] = 1
-
-			for word in tweet_words:
-				if word in economy:
-					tweet['economy'] = 1
-					counter += 1
-				if word in covid:
-					tweet['covid'] = 1
-					counter += 1
-				if word in foreign_policy:
-					tweet['foreign_policy'] = 1
-					counter += 1
-				if word in domestic_policy:
-					tweet['domestic_policy'] = 1
-					counter += 1
-				if word in impeachment:
-					tweet['impeachment'] = 1
-					counter += 1
-				if counter != 0:
-					tweet['other'] = 0
+		if economy_probs[index][1] > threshold:
+			tweet['economy'] = 1
+			counter += 1
+		if covid_probs[index][1] > threshold:
+			tweet['covid'] = 1
+			counter += 1
+		if foreign_probs[index][1] > threshold:
+			tweet['foreign_policy'] = 1
+			counter += 1
+		if domestic_probs[index][1] > threshold:
+			tweet['domestic_policy'] = 1
+			counter += 1
+		if impeachment_probs[index][1] > threshold:
+			tweet['impeachment'] = 1
+			counter += 1
+			
+		if counter != 0:
+			tweet['other'] = 0
 
 	return tweet_list
+
 
 
 
@@ -578,7 +621,7 @@ if __name__ == '__main__':
 	# write_aggregated_csv(aggregate_day, aggregated_subject, 'calendar_tweets.csv')
 	# update_buckets(tweet_list, 0.1)
 
-	get_bad_tweets(tweet_list)
+	# get_bad_tweets(tweet_list)
 
 
 	pass
