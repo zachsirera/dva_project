@@ -142,6 +142,13 @@ def assign_subject_label(tweet_list: list):
 	domestic_policy = ['obamacare', 'tax', 'taxes', 'immigration', 'immigrants', 'congress', 'republican', 'republicans', 'democrat', 'democrats', 'crime', 'border', 'amendment', 'military', 'healthcare', 'election', 'vote']
 	impeachment = ['mueller', 'comey', 'witch', 'dossier', 'hoax', 'impeachment']
 
+	#### Use this when we want to implement the recursive overlapping classifier
+	# covid_labels = open('buckets/covid.txt', 'r').read().splitlines()
+	# domestic_policy_labels = open('buckets/domestic_policy.txt', 'r').read().splitlines()
+	# foreign_policy_labels = open('buckets/foreign_policy.txt', 'r').read().splitlines()
+	# economy_labels = open('buckets/economy.txt', 'r').read().splitlines()
+	# impeachment_labels = open('buckets/impeachment.txt', 'r').read().splitlines()
+
 	for index, tweet in enumerate(tweet_list):
 		if tweet['text'] != None:
 			counter = 0
@@ -539,6 +546,27 @@ def update_buckets(tweet_list: list, threshold: float):
 		result = define_buckets(tweet_list, threshold)
 
 
+def get_bad_tweets(tweet_list: list): 
+	''' save bad tweets to try to figure out where they are coming from ''' 
+
+	fieldnames = tweet_list[0].keys()
+
+	with open('bad_tweets.csv', 'w', newline='') as f:
+
+		writer = csv.DictWriter(f, fieldnames=fieldnames)
+		writer.writeheader()
+
+		for tweet in tweet_list:
+			if len(tweet['text']) > 280:
+				writer.writerow(tweet)
+
+	return 
+
+
+
+
+
+
 
 if __name__ == '__main__':
 	tweet_list = read_csv('tweets.csv')
@@ -548,7 +576,10 @@ if __name__ == '__main__':
 	# write_data_csv(tweet_list)
 	# aggregated_day = aggregate_day(tweet_list)
 	# write_aggregated_csv(aggregate_day, aggregated_subject, 'calendar_tweets.csv')
-	update_buckets(tweet_list, 0.1)
+	# update_buckets(tweet_list, 0.1)
+
+	get_bad_tweets(tweet_list)
+
 
 	pass
 

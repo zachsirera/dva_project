@@ -175,36 +175,40 @@ if __name__ == '__main__':
 	domestic_probs = predict_prob(domestic_policy_classifier, vectors)
 	impeachment_probs = predict_prob(impeachment_classifier, vectors)
 
+	
+	for index, tweet in enumerate(tweet_list):
+		if covid_probs[index][1] < 0.2:
+			print(round(covid_probs[index][1], 3), tweet['text'])
 
-	plt.hist(economy_probs[:, 1])
-	plt.title("Economy")
-	plt.xlabel("Tweet Probability")
-	plt.savefig("figures/economy_dist")
-	plt.cla()
+	# plt.hist(economy_probs[:, 1])
+	# plt.title("Economy")
+	# plt.xlabel("Tweet Probability")
+	# plt.savefig("figures/economy_dist")
+	# plt.cla()
 
-	plt.hist(covid_probs[:, 1])
-	plt.title("Covid")
-	plt.xlabel("Tweet Probability")
-	plt.savefig("figures/covid_dist")
-	plt.cla()
+	# plt.hist(covid_probs[:, 1])
+	# plt.title("Covid")
+	# plt.xlabel("Tweet Probability")
+	# plt.savefig("figures/covid_dist")
+	# plt.cla()
 
-	plt.hist(foreign_probs[:, 1])
-	plt.title("Foreign Policy")
-	plt.xlabel("Tweet Probability")
-	plt.savefig("figures/foreign_policy_dist")
-	plt.cla()
+	# plt.hist(foreign_probs[:, 1])
+	# plt.title("Foreign Policy")
+	# plt.xlabel("Tweet Probability")
+	# plt.savefig("figures/foreign_policy_dist")
+	# plt.cla()
 
-	plt.hist(domestic_probs[:, 1])
-	plt.title("Domestic Policy")
-	plt.xlabel("Tweet Probability")
-	plt.savefig("figures/domestic_policy_dist")
-	plt.cla()
+	# plt.hist(domestic_probs[:, 1])
+	# plt.title("Domestic Policy")
+	# plt.xlabel("Tweet Probability")
+	# plt.savefig("figures/domestic_policy_dist")
+	# plt.cla()
 
-	plt.hist(impeachment_probs[:, 1])
-	plt.title("Impeachment")
-	plt.xlabel("Tweet Probability")
-	plt.savefig("figures/impeachment_dist")
-	plt.cla()
+	# plt.hist(impeachment_probs[:, 1])
+	# plt.title("Impeachment")
+	# plt.xlabel("Tweet Probability")
+	# plt.savefig("figures/impeachment_dist")
+	# plt.cla()
 
 
 
