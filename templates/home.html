@@ -115,6 +115,7 @@
 		});
 
 	function ready(events, aggregated_tweets, tweet_data) {
+		
 
 		var default_subj = 'all',
 			default_attr = 'sentiment',
@@ -128,7 +129,7 @@
 		// listen for subject dropdown change
 		$("#subject_select a").click(function() {
 			// trying to update the dropdown button text to display the current selection, but can't figure out how. 
-			$(this).parents(".dropdown").find('.nav_link').html($(this).text());
+			$('#subject_select_menu').html($(this).text());
 
 			var new_subj = $(this)[0].getAttribute('value');
 			subject_change(new_subj);

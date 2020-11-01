@@ -19,6 +19,16 @@
 
   <style>
 
+    #header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+    }
+
+    #body_main {
+      margin-top: 100px;
+    }
+
     #footer {
         position: relative;
         left: 0;
@@ -58,7 +68,7 @@
                     <!-- Dropdown to select tweet subject to filter on  -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" id="subject_select_menu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Subject
+                            All
                         </a>
                         <div class="dropdown-menu" id="subject_select">
                             <a class="dropdown-item" value="all">All</a>
@@ -101,7 +111,6 @@
 
             </div>
         </nav>
-        <br>
     </div>
 
     <div id="body_main" class="container" style="height: 100%">
