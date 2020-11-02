@@ -55,37 +55,61 @@ def parse_tweets(tweet_list: list):
 	for index, tweet in enumerate(tweet_list):
 		if tweet['text'] != None:
 			tweet_separated = tweet['text'].split(" ")
-			for word in tweet_separated:
-				# print(word)
-				try: 
-
-
-					# Put any more parsing rules here 
-					if word[0] == '@':
-						tweet_separated.remove(word)
-					if word[0] == '#':
-						tweet_separated.remove(word)
-					if word[0] == '&':
-						tweet_separated.remove(word)
-					if word[0] == '.':
-						tweet_separated.remove(word)
-					if word[0:4] == 'http':
-						tweet_separated.remove(word)
-
-
-				except IndexError:
-					# Occasionally tweets contain a double space. This can be problematic when splitting on " "
-					pass
+			tweet_separated = clean_characters(tweet_separated)
 
 			# Join the tweet back together and strip out any remaining punctuation
 			# tweet_joined = " ".join(tweet_separated) 
 			# tweet_list[index]['text'] = tweet_joined.translate(str.maketrans('', '', string.punctuation))
-			
-			tweet_list[index]['text'] = " ".join(tweet_separated) 
+
+			# parse tweets that have numerous tweets in text field
+			nwords = len(tweet_separated)
+			new_line_in_text = '\n' in tweet['text']
+			if (len(tweet_separated) > 280) or (new_line_in_text) :
+				a = 1
+				new_tweets = " ".join(tweet_separated)
+				new_tweets1 = new_tweets.split('\n')
+				tweet_list[index]['text'] = new_tweets1[0]
+				for new_tweet in new_tweets1[1:]:
+					tweet_separated1 = new_tweet.split(" ")
+					tweet_separated1 = clean_characters(tweet_separated1)
+					header_labels = ['source', 'text', 'created_at', 'retweet_count', 'favorite_count', 'is_retweet', 'id_str']
+					tweet_dict = dict()
+					tweet_joined = " ".join(tweet_separated1).split(',')
+					for index, label in enumerate(header_labels):
+						try:
+							tweet_dict[header_labels[index]] = tweet_joined[index]
+						except IndexError:
+							tweet_dict[header_labels[index]] = None
+					tweet_list.append(tweet_dict)
+					a = 1
+			else:
+				tweet_list[index]['text'] = " ".join(tweet_separated)
 
 	return remove_retweets(tweet_list)
 
 
+def clean_characters(tweet_separated):
+	for word in tweet_separated:
+		# print(word)
+		try:
+
+			# Put any more parsing rules here
+			if word[0] == '@':
+				tweet_separated.remove(word)
+			if word[0] == '#':
+				tweet_separated.remove(word)
+			if word[0] == '&':
+				tweet_separated.remove(word)
+			if word[0] == '.':
+				tweet_separated.remove(word)
+			if word[0:4] == 'http':
+				tweet_separated.remove(word)
+
+
+		except IndexError:
+			# Occasionally tweets contain a double space. This can be problematic when splitting on " "
+			pass
+	return tweet_separated
 
 def remove_retweets(tweet_list: list):
 	''' remove rewtweets. We want Trump's tweets only '''	
@@ -183,8 +207,8 @@ def assign_subject_label(tweet_list: list):
 	# Load classifiers and vectorizer from storage
 	covid_classifier = classify.load_model("covid")
 	economy_classifier = classify.load_model("economy")
-	foreign_classifier = classify.load_model("foreign")
-	domestic_classifier = classify.load_model("domestic")
+	foreign_policy_classifier = classify.load_model("foreign_policy")
+	domestic_policy_classifier = classify.load_model("domestic_policy")
 	impeachment_classifier = classify.load_model("impeachment")
 	vectorizer = classify.load_model("vectorizer")
 
@@ -193,14 +217,14 @@ def assign_subject_label(tweet_list: list):
 	vectors = vectorizer.transform(all_text_only)
 
 	# predict probabilities 
-	economy_probs = predict_prob(economy_classifier, vectors)
-	covid_probs = predict_prob(covid_classifier, vectors)
-	foreign_probs = predict_prob(foreign_policy_classifier, vectors)
-	domestic_probs = predict_prob(domestic_policy_classifier, vectors)
-	impeachment_probs = predict_prob(impeachment_classifier, vectors)
+	economy_probs = classify.predict_prob(economy_classifier, vectors)
+	covid_probs = classify.predict_prob(covid_classifier, vectors)
+	foreign_probs = classify.predict_prob(foreign_policy_classifier, vectors)
+	domestic_probs = classify.predict_prob(domestic_policy_classifier, vectors)
+	impeachment_probs = classify.predict_prob(impeachment_classifier, vectors)
 
 	threshold = 0.9 
-
+	counter = 0
 	for index, tweet in enumerate(tweet_list):
 		if economy_probs[index][1] > threshold:
 			tweet['economy'] = 1
