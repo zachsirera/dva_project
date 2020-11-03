@@ -5,6 +5,7 @@
 import csv
 import string
 import textstat
+from datetime import datetime
 
 from textblob import TextBlob
 
@@ -55,35 +56,70 @@ def parse_tweets(tweet_list: list):
 	for index, tweet in enumerate(tweet_list):
 		if tweet['text'] != None:
 			tweet_separated = tweet['text'].split(" ")
-			for word in tweet_separated:
-				# print(word)
-				try: 
-
-
-					# Put any more parsing rules here 
-					if word[0] == '@':
-						tweet_separated.remove(word)
-					if word[0] == '#':
-						tweet_separated.remove(word)
-					if word[0] == '&':
-						tweet_separated.remove(word)
-					if word[0] == '.':
-						tweet_separated.remove(word)
-					if word[0:4] == 'http':
-						tweet_separated.remove(word)
-
-
-				except IndexError:
-					# Occasionally tweets contain a double space. This can be problematic when splitting on " "
-					pass
+			tweet_separated = clean_characters(tweet_separated)
 
 			# Join the tweet back together and strip out any remaining punctuation
 			# tweet_joined = " ".join(tweet_separated) 
 			# tweet_list[index]['text'] = tweet_joined.translate(str.maketrans('', '', string.punctuation))
-			
-			tweet_list[index]['text'] = " ".join(tweet_separated) 
+
+			# parse tweets that have numerous tweets in text field
+			nwords = len(tweet_separated)
+			new_line_in_text = '\n' in tweet['text']
+			if (len(tweet_separated) > 280) or (new_line_in_text) :
+				a = 1
+				new_tweets = " ".join(tweet_separated)
+				new_tweets1 = new_tweets.split('\n')
+				tweet_list[index]['text'] = new_tweets1[0]
+				for new_tweet in new_tweets1[1:]:
+					tweet_separated1 = new_tweet.split(" ")
+					tweet_separated1 = clean_characters(tweet_separated1)
+					header_labels = ['source', 'text', 'created_at', 'retweet_count', 'favorite_count', 'is_retweet', 'id_str', 'length']
+					tweet_dict = dict()
+					tweet_joined = " ".join(tweet_separated1).split(',')
+					for index, label in enumerate(header_labels):
+
+						if label == 'length':
+							try:
+								tweet_dict[header_labels[index]] = tweet_joined[index]
+							except IndexError:
+								tweet_dict[header_labels[index]] = len(tweet['text'])
+						else:
+
+							try:
+								tweet_dict[header_labels[index]] = tweet_joined[index]
+							except IndexError:
+								tweet_dict[header_labels[index]] = None
+					tweet_list.append(tweet_dict)
+					a = 1
+			else:
+				tweet_list[index]['text'] = " ".join(tweet_separated)
 
 	return remove_retweets(tweet_list)
+
+
+
+def clean_characters(tweet_separated):
+	for word in tweet_separated:
+		# print(word)
+		try:
+
+			# Put any more parsing rules here
+			if word[0] == '@':
+				tweet_separated.remove(word)
+			if word[0] == '#':
+				tweet_separated.remove(word)
+			if word[0] == '&':
+				tweet_separated.remove(word)
+			if word[0] == '.':
+				tweet_separated.remove(word)
+			if word[0:4] == 'http':
+				tweet_separated.remove(word)
+
+
+		except IndexError:
+			# Occasionally tweets contain a double space. This can be problematic when splitting on " "
+			pass
+	return tweet_separated
 
 
 
@@ -177,14 +213,16 @@ def get_tweet_complexity(tweet_list: list):
 
 # 	return tweet_list
 
+
+
 def assign_subject_label(tweet_list: list):
 	''' Use trained Naive-Bayes Classifiers to assign tweet labels '''
 
 	# Load classifiers and vectorizer from storage
 	covid_classifier = classify.load_model("covid")
 	economy_classifier = classify.load_model("economy")
-	foreign_classifier = classify.load_model("foreign")
-	domestic_classifier = classify.load_model("domestic")
+	foreign_policy_classifier = classify.load_model("foreign_policy")
+	domestic_policy_classifier = classify.load_model("domestic_policy")
 	impeachment_classifier = classify.load_model("impeachment")
 	vectorizer = classify.load_model("vectorizer")
 
@@ -193,33 +231,51 @@ def assign_subject_label(tweet_list: list):
 	vectors = vectorizer.transform(all_text_only)
 
 	# predict probabilities 
-	economy_probs = predict_prob(economy_classifier, vectors)
-	covid_probs = predict_prob(covid_classifier, vectors)
-	foreign_probs = predict_prob(foreign_policy_classifier, vectors)
-	domestic_probs = predict_prob(domestic_policy_classifier, vectors)
-	impeachment_probs = predict_prob(impeachment_classifier, vectors)
+	economy_probs = classify.predict_prob(economy_classifier, vectors)
+	covid_probs = classify.predict_prob(covid_classifier, vectors)
+	foreign_probs = classify.predict_prob(foreign_policy_classifier, vectors)
+	domestic_probs = classify.predict_prob(domestic_policy_classifier, vectors)
+	impeachment_probs = classify.predict_prob(impeachment_classifier, vectors)
 
+	# define the threshold for the classifier to assign a label 
 	threshold = 0.9 
 
+	# keep track of labels. if 0, then tweet is other
+	counter = 0
 	for index, tweet in enumerate(tweet_list):
-		if economy_probs[index][1] > threshold:
-			tweet['economy'] = 1
-			counter += 1
-		if covid_probs[index][1] > threshold:
-			tweet['covid'] = 1
-			counter += 1
-		if foreign_probs[index][1] > threshold:
-			tweet['foreign_policy'] = 1
-			counter += 1
-		if domestic_probs[index][1] > threshold:
-			tweet['domestic_policy'] = 1
-			counter += 1
-		if impeachment_probs[index][1] > threshold:
-			tweet['impeachment'] = 1
-			counter += 1
-			
-		if counter != 0:
-			tweet['other'] = 0
+
+		# initialize values 
+		if tweet['text'] != None:
+			counter = 0
+			tweet['economy'] = 0
+			tweet['covid'] = 0
+			tweet['foreign_policy'] = 0
+			tweet['domestic_policy'] = 0
+			tweet['impeachment'] = 0
+			tweet['other'] = 1
+
+			# update values if the classifier says so. it is the master after all. 
+			if economy_probs[index][1] > threshold:
+				tweet['economy'] = 1
+				counter += 1
+
+			# only difference is covid tweets can't exist before covid-19, so ~1/1/2020
+			if covid_probs[index][1] > threshold:
+				if datetime.strptime(tweet['created_at'], "%m-%d-%Y %H:%M:%S") >= datetime.strptime("1 1 2020", "%m %d %Y"):
+					tweet['covid'] = 1
+					counter += 1
+			if foreign_probs[index][1] > threshold:
+				tweet['foreign_policy'] = 1
+				counter += 1
+			if domestic_probs[index][1] > threshold:
+				tweet['domestic_policy'] = 1
+				counter += 1
+			if impeachment_probs[index][1] > threshold:
+				tweet['impeachment'] = 1
+				counter += 1
+				
+			if counter != 0:
+				tweet['other'] = 0
 
 	return tweet_list
 
@@ -392,12 +448,12 @@ def write_aggregated_csv(aggregated_month: dict, aggregated_subject: dict, filen
 
 
 
-def write_data_csv(tweet_list: list): 
+def write_data_csv(tweet_list: list, filename): 
 
 	csv_columns = ['created_at', 'id_str', 'favorite_count', 'retweet_count', 'sentiment', 'subjectivity', 'reading_ease', 'grade_level', 'length', 'economy', 'covid', 'foreign_policy', 'domestic_policy', 'impeachment', 'other']
 
 	try:
-		with open('tweet_data.csv', 'w', newline='') as f:
+		with open(filename, 'w', newline='') as f:
 			csv_writer = csv.writer(f, delimiter=",")
 			csv_writer.writerow(csv_columns)
 			
@@ -474,6 +530,12 @@ def aggregate_day(tweet_list: list):
 
 	return aggregated
 
+
+
+
+
+
+
 def get_most_common_words(tweet_list: list, n: int):
 	''' get the list of n most common words trump tweets '''
 
@@ -492,101 +554,6 @@ def get_most_common_words(tweet_list: list, n: int):
 	return {x: count for x, count in Counter(all_words).items() if count >= n}
 
 
-
-def define_buckets(tweet_list: list, threshold: float): 
-	''' function to progressively redefine what words that are used to categorize tweets '''
-
-	punctuation = '''!()-[]{};:'", <>./?@#$%^&*_~'''
-
-	labels = ['covid', 'domestic_policy', 'foreign_policy', 'economy', 'impeachment']
-
-	# don't want to count articles, prepositions, etc 
-	non_words = open('buckets/nonwords.txt', 'r').read().splitlines()
-
-	covid_labels = open('buckets/covid.txt', 'r').read().splitlines()
-	domestic_policy_labels = open('buckets/domestic_policy.txt', 'r').read().splitlines()
-	foreign_policy_labels = open('buckets/foreign_policy.txt', 'r').read().splitlines()
-	economy_labels = open('buckets/economy.txt', 'r').read().splitlines()
-	impeachment_labels = open('buckets/impeachment.txt', 'r').read().splitlines()
-
-	counts = {label: 0 for label in labels}
-
-	cowords = {label: [] for label in labels}
-
-	for tweet in tweet_list:
-
-		for label in labels: 
-			counts[label] += tweet[label]
-
-		for word in tweet['text'].lower().split(" "):
-
-			for char in word:
-				if char in punctuation:  
-					word = word.replace(char, "")
-
-			if word in non_words:
-				pass
-			else:
-				for label in labels:
-					if tweet[label] == 1:
-						cowords[label].append(word)
-				
-
-	
-	cowords_count = {label: dict(Counter(cowords[label])) for label in labels}
-
-	cowords_ratio = {label: dict() for label in labels}
-
-	for label in labels:
-		for coword in cowords_count[label]:
-			cowords_ratio[label][coword] = cowords_count[label][coword] / counts[label]
-		
-	new_covid_labels = [word for word in cowords_ratio['covid'] if cowords_ratio['covid'][word] >= threshold and word not in covid_labels]
-	new_domestic_policy_labels = [word for word in cowords_ratio['domestic_policy'] if cowords_ratio['domestic_policy'][word] >= threshold and word not in domestic_policy_labels]
-	new_foreign_policy_labels = [word for word in cowords_ratio['foreign_policy'] if cowords_ratio['foreign_policy'][word] >= threshold and word not in foreign_policy_labels]
-	new_economy_labels = [word for word in cowords_ratio['economy'] if cowords_ratio['economy'][word] >= threshold and word not in economy_labels]
-	new_impeachment_labels = [word for word in cowords_ratio['impeachment'] if cowords_ratio['impeachment'][word] >= threshold and word not in impeachment_labels]
-
-	if len(new_covid_labels) > 0:
-		with open('buckets/covid.txt', 'a') as covid_file:
-			for word in new_covid_labels:
-				covid_file.write(word)
-				covid_file.write('\n')
-
-	if len(new_domestic_policy_labels) > 0:
-		with open('buckets/domestic_policy.txt', 'a') as domestic_policy_file:
-			for word in new_domestic_policy_labels:
-				domestic_policy_file.write(word)
-				domestic_policy_file.write('\n')
-
-	if len(new_foreign_policy_labels) > 0:
-		with open('buckets/foreign_policy.txt', 'a') as foreign_policy_file:
-			for word in new_foreign_policy_labels:
-				foreign_policy_file.write(word)
-				foreign_policy_file.write('\n')
-
-	if len(new_economy_labels) > 0:
-		with open('buckets/economy.txt', 'a') as economy_file:
-			for word in new_economy_labels:
-				economy_file.write(word)
-				economy_file.write('\n')
-
-	if len(new_impeachment_labels) > 0:
-		with open('buckets/impeachment.txt', 'a') as impeachment_file:
-			for word in new_impeachment_labels:
-				impeachment_file.write(word)
-				impeachment_file.write('\n')
-
-	return len(new_covid_labels) + len(new_domestic_policy_labels) + len(new_foreign_policy_labels) + len(new_economy_labels) + len(new_impeachment_labels)
-
-
-def update_buckets(tweet_list: list, threshold: float):
-	''' call the define buckets function to recursively update the buckets until no more changes'''
-
-	result = 1
-
-	while result != 0:
-		result = define_buckets(tweet_list, threshold)
 
 
 def get_bad_tweets(tweet_list: list): 
@@ -613,15 +580,15 @@ def get_bad_tweets(tweet_list: list):
 
 if __name__ == '__main__':
 	tweet_list = read_csv('tweets.csv')
-	# aggregated_month = group_tweets_by_month(tweet_list)
-	# aggregated_subject = add_subject_aggregates(tweet_list)
-	# write_aggregated_csv(aggregated_month, aggregated_subject, 'aggregated_tweets.csv')
-	# write_data_csv(tweet_list)
+
+	aggregated_month = group_tweets_by_month(tweet_list)
+	aggregated_subject = add_subject_aggregates(tweet_list)
+	write_aggregated_csv(aggregated_month, aggregated_subject, 'new_data/aggregated_tweets.csv')
+	write_data_csv(tweet_list, 'new_data/tweet_data.csv')
 	# aggregated_day = aggregate_day(tweet_list)
 	# write_aggregated_csv(aggregate_day, aggregated_subject, 'calendar_tweets.csv')
-	# update_buckets(tweet_list, 0.1)
 
-	# get_bad_tweets(tweet_list)
+
 
 
 	pass
