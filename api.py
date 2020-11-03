@@ -29,21 +29,21 @@ def get_csv_data(path_to_file):
 def get_aggregated_tweets():
 	''' get the current version of the aggregated tweets to display '''
 
-	return get_csv_data('aggregated_tweets.csv')
+	return get_csv_data('new_data/aggregated_tweets.csv')
 
 
 
 def get_tweet_data():
 	''' get the current tweet data to display '''
 
-	return get_csv_data('tweet_data.csv')
+	return get_csv_data('new_data/tweet_data.csv')
 
 
 
 def get_events(): 
 	''' get the current event data to display ''' 
 
-	return get_csv_data('events.csv')
+	return get_csv_data('new_data/events.csv')
 
 
 
