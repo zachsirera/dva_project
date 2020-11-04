@@ -1,7 +1,28 @@
 date,title,subject
 12-18-2019,Trump is impeached,all
-12-18-2019,Trump is impeached,impeachment
 11-08-2016,Trump wins 2016 election,all
+07-16-2015,Trump announces candidacy,all
+
+
+07-16-2015,Trump announces candidacy,impeachment
+11-08-2016,Trump wins 2016 election,impeachment
+12-18-2019,Trump is impeached,impeachment
+
+07-16-2015,Trump announces candidacy,domestic_policy
+11-08-2016,Trump wins 2016 election,domestic_policy
+12-18-2019,Trump is impeached,domestic_policy
+
+07-16-2015,Trump announces candidacy,foreign_policy
+11-08-2016,Trump wins 2016 election,foreign_policy
+05-18-2018,Trump pulls out of Iran Nuclear Deal,foreign_policy
+12-18-2019,Trump is impeached,foreign_policy
+
 01-21-2020,First confirmed COVID-19 case in US,covid
 03-13-2020,Trump declares national emergency,covid
 05-27-2020,US passes 100k COVID-10 deaths,covid
+
+07-16-2015,Trump announces candidacy,economy
+11-08-2016,Trump wins 2016 election,economy
+12-18-2019,Trump is impeached,economy
+
+

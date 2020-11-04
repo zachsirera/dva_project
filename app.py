@@ -12,9 +12,11 @@ import api
 
 app = Flask(__name__)
 
+
 @app.route('/')
 def cover():
 	return render_template('cover.html')
+
 
 @app.route('/index')
 def home():
@@ -26,6 +28,13 @@ def home():
 	# tweet_data = []
 
 	return render_template('home.html', events=events, aggregated_tweets=aggregated_tweets, tweet_data=reduced_tweet_data)
+
+
+@app.route('/methodology')
+def methodology():
+	return render_template('methodology.html')
+
+
 
 if __name__ == '__main__':
 	app.run()
