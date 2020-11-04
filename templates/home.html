@@ -178,10 +178,14 @@
 	function build_scatter_plot(tweet_data, subject, x_attribute, y_attribute) {
 
 		data = y_attribute;
+		
+		//console.log("subject = "+subject.toString());
 
 		var g_2 = svg_2.append("g")
 			.attr("transform", "translate(" + svg_2_margin.left + "," + 0 + ")");
-
+			
+		//console.log("x_attribute "+x_attribute.toString());
+		//console.log(tweet_data);
 
 		// define x axis for scatter plot 
 		var scatter_x = d3.scaleLinear()
@@ -280,9 +284,72 @@
                 }
 	    	});
 	        {#.text(x_attribute);#}
+			
+		//Here I draw the trend line
+		//First I get the slope, intercept and rsquared
+		
+	    //xdata =  tweet_data.map(function(d) { return scatter_x( +d[x_attribute] ); });
+		//ydata =  tweet_data.map(function(d) { return scatter_y( +d[y_attribute] ); });
+		
+		//Filtering Dataset
+		var fDataset;
+		
+		if (subject == 'all')
+		{
+			
+			fDataset = tweet_data;  
+			
+		}
+		else
+		{
+			fDataset = tweet_data.filter(function(d){return d[subject] == '1';});
+		}
+		
+		//console.log(fDataset);
+		
+		xdata =  fDataset.map(function(d) {	return +d[x_attribute]; } );
+		ydata =  fDataset.map(function(d) { return +d[y_attribute]; } );
 
+		var leastSquaresCoeff = leastSquares(xdata, ydata);
+
+		var slope = leastSquaresCoeff[0];
+		var intercept = leastSquaresCoeff[1];
+		var rsquared = leastSquaresCoeff[2];
+		
+		//console.log("slope = "+slope.toString());
+		//console.log("intercept = "+intercept.toString());
+		//console.log("rsquared = "+rsquared.toString());
+		
+		//Now we use the results of the regression to create coordinates
+		//that we will later draw:
+		
+		var x1 = d3.min(xdata);
+		var y1 = slope * x1 + intercept;
+		var x2 = d3.max(xdata);
+		var y2 = slope * x2 + intercept;
+		
+		var x1Scaled = scatter_x(x1); 
+		var y1Scaled = scatter_y(y1); 
+		var x2Scaled = scatter_x(x2); 
+		var y2Scaled = scatter_y(y2);
+		
+		var trendData = [x1Scaled,y1Scaled,x2Scaled,y2Scaled];
+		//console.log("trendData = "+trendData.toString());
+		
+		var trendline = svg_2.selectAll(".trendline")
+			.data(trendData);
+		
+		trendline.enter()
+			.append("line")
+			.attr("class", "trendline")
+			.attr("x1", trendData[0])
+			.attr("y1", trendData[1])
+			.attr("x2", trendData[2])
+			.attr("y2", trendData[3])
+			.attr("stroke", "blue")
+			.attr("stroke-width", 1);
+	
 	}
-
 
     function build_bar_graph(events, aggregated_tweets, subject, attribute) {
 
@@ -298,9 +365,9 @@
 		var milliSecondsInAday = 1000 * 60 * 60 * 24;
 		var totMonths = Math.ceil(diff/milliSecondsInAday/31);
 		var totDays = Math.ceil(diff/milliSecondsInAday);
-		console.log(minDate);
-		console.log(maxDate);
-		console.log(totMonths);
+		//console.log(minDate);
+		//console.log(maxDate);
+		//console.log(totMonths);
 		
 		var getDaysInMonth = function(month){
 		
@@ -312,10 +379,10 @@
 		
 		var getBarWidth = function(month) {
 			var days = getDaysInMonth(month)
-			console.log("month "+month.toString());
-			console.log("days "+days.toString());
+			//console.log("month "+month.toString());
+			//console.log("days "+days.toString());
 			result = ((svg_1_width - svg_1_margin.right - svg_1_margin.left)*(days/totDays)) - (bar_spacing);
-			console.log("width "+result.toString());
+			//console.log("width "+result.toString());
 			return result;
 		
 		}
@@ -533,7 +600,28 @@
 
 	}
 
+	//This function returns the slope, intercept and rSquare of the linear regression
+	function leastSquares(xSeries, ySeries) {
+		var reduceSumFunc = function(prev, cur) { return prev + cur; };
+		
+		var xBar = xSeries.reduce(reduceSumFunc) * 1.0 / xSeries.length;
+		var yBar = ySeries.reduce(reduceSumFunc) * 1.0 / ySeries.length;
 
+		var ssXX = xSeries.map(function(d) { return Math.pow(d - xBar, 2); })
+			.reduce(reduceSumFunc);
+		
+		var ssYY = ySeries.map(function(d) { return Math.pow(d - yBar, 2); })
+			.reduce(reduceSumFunc);
+			
+		var ssXY = xSeries.map(function(d, i) { return (d - xBar) * (ySeries[i] - yBar); })
+			.reduce(reduceSumFunc);
+			
+		var slope = ssXY / ssXX;
+		var intercept = yBar - (xBar * slope);
+		var rSquare = Math.pow(ssXY, 2) / (ssXX * ssYY);
+		
+		return [slope, intercept, rSquare];
+	}
 
 
 </script>
