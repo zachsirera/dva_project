@@ -115,6 +115,14 @@
 		.attr("width", svg_3_width)
 		.attr("height", svg_3_height);
 
+	// This is just a placeholder for the context-based word clouds 
+	svg_3.append("svg:image")
+		.attr('x', 0)
+		.attr('y', 0)
+		.attr('width', svg_3_width)
+		.attr('height', svg_3_height)
+		.attr("xlink:href", "{{url_for('static', filename='2020.png')}}")
+
 
 	Promise.all([
 		{{ events | tojson | safe }},
