@@ -450,7 +450,7 @@ def write_aggregated_csv(aggregated_month: dict, aggregated_subject: dict, filen
 
 def write_data_csv(tweet_list: list, filename): 
 
-	csv_columns = ['created_at', 'id_str', 'favorite_count', 'retweet_count', 'sentiment', 'subjectivity', 'reading_ease', 'grade_level', 'length', 'economy', 'covid', 'foreign_policy', 'domestic_policy', 'impeachment', 'other']
+	csv_columns = ['created_at', 'text', 'id_str', 'favorite_count', 'retweet_count', 'sentiment', 'subjectivity', 'reading_ease', 'grade_level', 'length', 'economy', 'covid', 'foreign_policy', 'domestic_policy', 'impeachment', 'other']
 
 	try:
 		with open(filename, 'w', newline='') as f:
