@@ -123,6 +123,13 @@
 		.attr('height', svg_3_height)
 		.attr("xlink:href", "{{url_for('static', filename='2020.png')}}")
 
+	// starting to try to add a button select to toggle the year for the word cloud display
+	// see bottom of page for example html that has been commented out
+	// var year_select = svg_3.append("foreignObject")
+	// 	.attr("width", svg_3_width - (svg_3_margin.right - svg_3_margin.left))
+	// 	.attr("heigh", 50)
+	// 	.append()
+
 
 	Promise.all([
 		{{ events | tojson | safe }},
@@ -645,6 +652,43 @@
 
 
 </script>
+
+
+<!-- <form id="toggle_year" class="btn-group btn-group-toggle" data-toggle="buttons">
+  <label class="btn btn-secondary year_btn">
+    <input type="radio" name="options" id="year_2010"> 2010
+  </label>
+  <label class="btn btn-secondary year_btn">
+    <input type="radio" name="options" id="year_2011"> 2011
+  </label>
+  <label class="btn btn-secondary year_btn">
+    <input type="radio" name="options" id="year_2012"> 2012
+  </label>
+  <label class="btn btn-secondary year_btn">
+    <input type="radio" name="options" id="year_2013"> 2013
+  </label>
+  <label class="btn btn-secondary year_btn">
+    <input type="radio" name="options" id="year_2014"> 2014
+  </label>
+  <label class="btn btn-secondary year_btn">
+    <input type="radio" name="options" id="year_2015"> 2015
+  </label>
+  <label class="btn btn-secondary year_btn">
+    <input type="radio" name="options" id="year_2016"> 2016
+  </label>
+  <label class="btn btn-secondary year_btn">
+    <input type="radio" name="options" id="year_2017"> 2017
+  </label>
+  <label class="btn btn-secondary year_btn">
+    <input type="radio" name="options" id="year_2018"> 2018
+  </label>
+  <label class="btn btn-secondary year_btn">
+    <input type="radio" name="options" id="year_2019"> 2019
+  </label>
+  <label class="btn btn-secondary year_btn active">
+    <input type="radio" name="options" id="year_2020" checked> 2020
+  </label>
+</form> -->
 
 	
 	
