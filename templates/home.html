@@ -103,6 +103,18 @@
 		.attr("width", svg_2_width)
 		.attr("height", svg_2_height);
 
+	// enter code to create svg
+	// SVG 3 - Word Clouds
+	// define margin and dimensions for svg_1
+	var svg_3_height = 500,
+		svg_3_width = 940,
+		svg_3_margin = {top: 50, right: 100, bottom: 50, left: 75};
+
+	var svg_3 = d3.select("body")
+		.append("svg")
+		.attr("width", svg_3_width)
+		.attr("height", svg_3_height);
+
 
 	Promise.all([
 		{{ events | tojson | safe }},

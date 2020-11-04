@@ -13,6 +13,10 @@ import api
 app = Flask(__name__)
 
 @app.route('/')
+def cover():
+	return render_template('cover.html')
+
+@app.route('/index')
 def home():
 	events = api.get_events()
 	aggregated_tweets = api.get_aggregated_tweets()
