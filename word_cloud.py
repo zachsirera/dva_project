@@ -64,13 +64,14 @@ def create_cloud(df, filename):
     tokens = all_words.split()
     counts = Counter(tokens)
 
-    wordcloud = WordCloud(width=900, height=600, random_state=21, max_font_size=110, background_color='ghostwhite',
+    wordcloud = WordCloud(width=940, height=500, random_state=21, max_font_size=110, background_color='white',
                           max_words=200, normalize_plurals=False).generate(all_words)
 
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(9.4, 5))
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis('off')
-    plt.savefig(f"./images/{filename}.png")
+    plt.tight_layout()
+    plt.savefig(f"./static/{filename}.png")
     plt.show()
 
 
@@ -79,7 +80,7 @@ if __name__ == "__main__":
 
     # Read csv into dataframe
     df = pd.read_csv('tweets.csv', quotechar='', quoting=3).dropna()
-    df_subjects = pd.read_csv('tweet_data.csv')
+    df_subjects = pd.read_csv('new_data/tweet_data.csv')
 
     # Convert data types and merge dataframes
     df['id_str'] = df['id_str'].apply(float)
