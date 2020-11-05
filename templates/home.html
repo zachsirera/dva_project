@@ -116,12 +116,7 @@
 		.attr("height", svg_3_height);
 
 	// This is just a placeholder for the context-based word clouds 
-	svg_3.append("svg:image")
-		.attr('x', 0)
-		.attr('y', 0)
-		.attr('width', svg_3_width)
-		.attr('height', svg_3_height)
-		.attr("xlink:href", "{{url_for('static', filename='2020.png')}}")
+	
 
 	// starting to try to add a button select to toggle the year for the word cloud display
 	// see bottom of page for example html that has been commented out
@@ -147,10 +142,12 @@
 		var default_subj = 'all',
 			default_attr = 'sentiment',
 			default_data = 'retweet_count';
+			default_year = 2020;
 	
 		// initially build bar graph with default values
 		build_bar_graph(events, aggregated_tweets, default_subj, default_attr);
 		build_scatter_plot(tweet_data, default_subj, default_attr, default_data);
+		build_word_cloud(default_subj, default_year);
 
 
 		// listen for subject dropdown change
@@ -170,6 +167,18 @@
             svg_2.selectAll("*").remove();
 			build_bar_graph(events, aggregated_tweets, new_subject, attr);
 			build_scatter_plot(tweet_data, new_subject, attr, data);
+			build_word_cloud(new_subject, yr);
+		}
+
+		// listen for year button change 
+		$(".year_btn").on('click', function() {
+			var new_year = $(this)[0].getAttribute('value');
+			year_change(new_year);
+		})
+
+		// handle when the user selects a new year
+		function year_change(new_year) {
+			build_word_cloud(subj, new_year);
 		}
 
 		// listen for attribute button change 
@@ -199,6 +208,34 @@
 			svg_2.selectAll("*").remove();
 			build_scatter_plot(tweet_data, subj, attr, new_data);
 		}
+	}
+
+	function build_word_cloud(subject, year) {
+		yr = year;
+		subj = subject;
+
+		if (subj == 'all') {
+			var filename = yr.toString() + '.png';
+		} else {
+			var filename = yr.toString() + '_' + subj + '.png';
+		}
+
+		console.log(filename)
+
+		// var attr_string = "{{url_for('static', filename=" + filename + ")}}";
+		var attr_string = "static/" + filename;
+
+
+
+		console.log(attr_string)
+
+		svg_3.append("svg:image")
+			.attr('x', 0)
+			.attr('y', 0)
+			.attr('width', svg_3_width)
+			.attr('height', svg_3_height)
+			.attr("xlink:href", attr_string);
+
 	}
 
 
