@@ -1,8 +1,82 @@
-This dashboard presents an analysis of all of Donald Trump's tweets from his account's inception to today. <br> <br>
-To accomplish this tweets were parsed and classified using a trained Naive-Bayes classifier to assign subjet lables <br>
-and then fed through semantic analysis algorithms to determine tweet sentiment, subjetivity, and complexity. <br> <br>
+{% extends "layout.html" %}
 
-This dashboard aims to illuminate trends in President Trump's bahavior based on the contents of his tweets, <br>
-particularly as they are relevant to specific events and topics. <br><br>
+{% block title %}
+	Methodology
+{% endblock %}
 
-More to come. <br>
+{% block main %}
+
+
+	<div class="container">
+
+		<h1> Our Methodology </h1><br>
+		<p>
+			This dashboard presents an analysis of all of Donald Trump's tweets from his account's inception to today. <br>
+			We aim to illuminate trends in the President's behavior based on the contents of his tweets, particularly as 
+			they are relevant to specific events and topics.<br>
+			The web application automatically updates every night at midnight, fetching the President's most recent tweets and
+			analyzing them, aggregating this new data and presenting it. <br><br>
+
+
+		</p>
+
+		<h3> Tweet Parsing </h3><br>
+		<p>
+			Tweets are initially parsed to prepare them for analysis. <br>
+			The first and most important step is to remove retweets from the dataset. This ensures that we are tracking
+			only the President's behavior, and not contaminating results with tweets from other users, who will have entirely different 
+			Twitter behavior. <br>
+			We also remove <a href="https://scikit-learn.org/stable/modules/feature_extraction.html#stop-words">stopwords</a> from each tweet in order to improve classifier accuracy and reduce computational resources that would otherwise be spent on analyzing words that don't improve performance or classifier descriminatory power.<br><br>
+
+
+		</p>
+
+		<h3> Classification </h3><br>
+		<p>
+			First we identified five subjects that we believe are significant in the context of this analysis. 
+			Then we initially select words that we believe have a very strong correlation with these subjects, for example the words "covid", "coronavirus", and "covid-19" under the subject label <i>covid</i>. 
+			We pass through all of President Trump's tweets and if any single word matches a word under the umbrella of a specific subject, it gets that subjects label. The advantage of this method is that a tweet can, and in many cases should, have multiple labels. For example, the President can tweet about <i>foreign policy</i> and <i>the economy</i> at the same time.  
+			These labeled tweets are then used to train several Naive-Bayes classifiers, which are particularly suited to this sort of analysis, one for each subject. Once the classifiers are trained they pass over the entire tweet list and assess the probability that any tweet should be classified its particular subject. Any tweet above a certain probability threshold is labeled in order to be aggregated. 
+
+
+			<br><br>
+		</p>
+
+		<h3> Analysis </h3><br>
+		<p>
+
+			<br><br>
+		</p>
+
+		<h3> Presentation </h3><br>
+		<p><br><br></p>
+
+		<h3> Tools Used </h3><br>
+		<p>
+			To accomplish this we used the following tools and libraries: 
+			<ul>
+				<li> <b>Python</b> - Data aggregation and analysis </li>
+				<li> <b>Flask</b> - Web framework to handle requests </li>
+				<li> <b>Heroku</b> - Host the web app and schedule update functions </li>
+				<li> <b>d3.js</b> - Front end data visualization library to generate charts </li>
+				<li> <b>Bootstrap</b> - Front end styling library </li>
+				<li> <b>Scikit-Learn</b> - Train and implement classifier to predict tweet subject </li>
+			</ul><br><br>
+
+
+		</p>
+
+		
+	
+
+		<p> 
+			<i>More to come.</i> <br><br>
+		</p>
+
+		<a href="/index" class="btn btn-lg btn-secondary">
+			Return to Dashboard
+		</a>
+
+	</div>
+
+{% endblock %}
