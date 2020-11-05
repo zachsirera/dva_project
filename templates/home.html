@@ -203,7 +203,6 @@
 
 
 	function build_scatter_plot(tweet_data, subject, x_attribute, y_attribute) {
-
 		data = y_attribute;
 		
 		//console.log("subject = "+subject.toString());
@@ -339,6 +338,7 @@
 
 		var leastSquaresCoeff = leastSquares(xdata, ydata);
 
+<<<<<<< Updated upstream
 		var slope = leastSquaresCoeff[0];
 		var intercept = leastSquaresCoeff[1];
 		var rsquared = leastSquaresCoeff[2];
@@ -377,8 +377,44 @@
 			.attr("stroke-width", 1);
 	
 	}
+=======
+	function populateTweetDescription(aggregated_tweets, subject, attribute) {
+		var attributeSum = 0;
+		var attributeTotal = 0;
+		aggregated_tweets.forEach((data) => {
+			if (data.subject === subject) {
+				attributeSum += Number(data[attribute]);
+				attributeTotal++;
+			}
+		});
+		var averageAttributeValue = attributeSum / attributeTotal;
+
+		switch(attribute) {
+			case 'sentiment':
+				var scale = [-1, -0.5, -0.1, 0.1, 0.5, 1];
+				var verbalScale = ['very negative', 'somewhat negative', 'neutral', 'somewhat positive', 'very positive'];
+				break;
+			case 'grade_level':
+				var scale = [-99, 3, 5, 7, 9, 99];
+				var verbalScale = ['1st - 3rd grade', '3rd - 5th grade', '5th - 7th grade', '7th - 9th grade', '9th - 12th grade'];
+				break;
+			case 'subjectivity':
+				var scale = [0, 0.2, 0.4, 0.6, 0.8, 1];
+				var verbalScale = ['very objective', 'somewhat objective', 'neutral', 'somewhat subjective', 'very subjective'];
+				break;
+		}
+
+		var verbalScaleIndex = scale.findIndex((scaleVal, index) => {
+			return (averageAttributeValue >= scaleVal) && (averageAttributeValue <= scale[index + 1]);
+		});
+
+		document.getElementById('tweet-description').innerHTML = verbalScale[verbalScaleIndex];
+	}
+
+>>>>>>> Stashed changes
 
     function build_bar_graph(events, aggregated_tweets, subject, attribute) {
+		populateTweetDescription(aggregated_tweets, subject, attribute);
 
     	subj = subject;
     	attr = attribute;
@@ -392,9 +428,12 @@
 		var milliSecondsInAday = 1000 * 60 * 60 * 24;
 		var totMonths = Math.ceil(diff/milliSecondsInAday/31);
 		var totDays = Math.ceil(diff/milliSecondsInAday);
+<<<<<<< Updated upstream
 		//console.log(minDate);
 		//console.log(maxDate);
 		//console.log(totMonths);
+=======
+>>>>>>> Stashed changes
 		
 		var getDaysInMonth = function(month){
 		
@@ -406,10 +445,14 @@
 		
 		var getBarWidth = function(month) {
 			var days = getDaysInMonth(month)
+<<<<<<< Updated upstream
 			//console.log("month "+month.toString());
 			//console.log("days "+days.toString());
 			result = ((svg_1_width - svg_1_margin.right - svg_1_margin.left)*(days/totDays)) - (bar_spacing);
 			//console.log("width "+result.toString());
+=======
+			result = ((svg_1_width - svg_1_margin.right - svg_1_margin.left)*(days/totDays)) - (bar_spacing);
+>>>>>>> Stashed changes
 			return result;
 		
 		}
