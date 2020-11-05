@@ -43,6 +43,13 @@
         text-align: center
     }
 
+    #tweet-description {
+      color: white;
+      flex-grow: 1;
+      margin: 0 16px;
+      font-size: 14px;
+    }
+
     * {
       font-family: helvetica;
     }
@@ -83,8 +90,10 @@
                     </li>
                 </ul>
 
+                <div id="tweet-description"></div>
+
                 <!-- Toggle to select which attribute to display -->
-                <form id="toggle_data" class="btn-group btn-group-toggle form-inline my-2 my-lg-0" data-toggle="buttons" style="padding-right: 150px;">
+                <form id="toggle_data" class="btn-group btn-group-toggle form-inline my-2 my-lg-0" data-toggle="buttons" style="padding-right: 16px;">
                   <label class="btn btn-secondary active data_btn" value="retweet_count" >
                     <input type="radio" name="controlHeatmapType" checked>Retweets<br>
                   </label>
