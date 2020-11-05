@@ -338,7 +338,6 @@
 
 		var leastSquaresCoeff = leastSquares(xdata, ydata);
 
-<<<<<<< Updated upstream
 		var slope = leastSquaresCoeff[0];
 		var intercept = leastSquaresCoeff[1];
 		var rsquared = leastSquaresCoeff[2];
@@ -377,7 +376,6 @@
 			.attr("stroke-width", 1);
 	
 	}
-=======
 	function populateTweetDescription(aggregated_tweets, subject, attribute) {
 		var attributeSum = 0;
 		var attributeTotal = 0;
@@ -411,7 +409,6 @@
 		document.getElementById('tweet-description').innerHTML = verbalScale[verbalScaleIndex];
 	}
 
->>>>>>> Stashed changes
 
     function build_bar_graph(events, aggregated_tweets, subject, attribute) {
 		populateTweetDescription(aggregated_tweets, subject, attribute);
@@ -428,12 +425,6 @@
 		var milliSecondsInAday = 1000 * 60 * 60 * 24;
 		var totMonths = Math.ceil(diff/milliSecondsInAday/31);
 		var totDays = Math.ceil(diff/milliSecondsInAday);
-<<<<<<< Updated upstream
-		//console.log(minDate);
-		//console.log(maxDate);
-		//console.log(totMonths);
-=======
->>>>>>> Stashed changes
 		
 		var getDaysInMonth = function(month){
 		
@@ -445,14 +436,7 @@
 		
 		var getBarWidth = function(month) {
 			var days = getDaysInMonth(month)
-<<<<<<< Updated upstream
-			//console.log("month "+month.toString());
-			//console.log("days "+days.toString());
 			result = ((svg_1_width - svg_1_margin.right - svg_1_margin.left)*(days/totDays)) - (bar_spacing);
-			//console.log("width "+result.toString());
-=======
-			result = ((svg_1_width - svg_1_margin.right - svg_1_margin.left)*(days/totDays)) - (bar_spacing);
->>>>>>> Stashed changes
 			return result;
 		
 		}
