@@ -160,7 +160,7 @@ def get_tweet_complexity(tweet_list: list):
 	for index, tweet in enumerate(tweet_list):
 		try:
 			tweet['reading_ease'] = textstat.flesch_reading_ease(tweet['text'])
-			tweet['grade_level'] = textstat.flesch_kincaid_grade(tweet['text'])
+			tweet['grade_level'] = min(max(textstat.flesch_kincaid_grade(tweet['text']), 1), 12)
 		except TypeError:
 			# Tweets with no text won't be analyzed
 			pass
@@ -476,53 +476,67 @@ def write_data_csv(tweet_list: list, filename):
 	return 
 
 
-def aggregate_day(tweet_list: list):
+def add_subject_aggregates_day(tweet_list: list): 
+	''' actually pass the subject lables to the aggregate function ''' 
+
+	results = []
+	subjects = ['economy', 'covid', 'foreign_policy', 'domestic_policy', 'impeachment', 'other']
+
+	for subject in subjects:
+		results.append(group_tweets_by_subject_day(tweet_list, subject))
+
+	return results
+
+
+def group_tweets_by_day(tweet_list: list):
+
 	aggregated = dict()
 
 	for tweet in tweet_list:
 		try: 
 			date = tweet['created_at'].split(" ")[0].split("-")
 
-			try:
-				day = f'{date[0]}-{date[1]}'
-				data = aggregated[day] 
+			if date[2] == '2020':
 
-				new_subj = increment(data['count'], data['subjectivity'], tweet['subjectivity'])
-				new_sent = increment(data['count'], data['sentiment'], tweet['sentiment'])
-				new_reading = increment(data['count'], data['reading_ease'], tweet['reading_ease'])
-				new_grade = increment(data['count'], data['grade_level'], tweet['grade_level'])
-				new_retweet_ct = increment(data['count'], data['retweet_count'], int(tweet['retweet_count']))
-				new_favorite_ct = increment(data['count'], data['favorite_count'], int(tweet['favorite_count']))
-				new_length = increment(data['count'], data['length'], int(tweet['length']))
+				try:
+					day = f'{date[0]}-{date[1]}'
+					data = aggregated[day] 
 
-				data['count'] += 1
-				data['subjectivity'] = new_subj
-				data['sentiment'] = new_sent
-				data['reading_ease'] = new_reading
-				data['grade_level'] = new_grade
-				data['retweet_count'] = new_retweet_ct
-				data['favorite_count'] = new_favorite_ct
-				data['length'] = new_length
-				data['subject'] = 'all'
+					new_subj = increment(data['count'], data['subjectivity'], tweet['subjectivity'])
+					new_sent = increment(data['count'], data['sentiment'], tweet['sentiment'])
+					new_reading = increment(data['count'], data['reading_ease'], tweet['reading_ease'])
+					new_grade = increment(data['count'], data['grade_level'], tweet['grade_level'])
+					new_retweet_ct = increment(data['count'], data['retweet_count'], int(tweet['retweet_count']))
+					new_favorite_ct = increment(data['count'], data['favorite_count'], int(tweet['favorite_count']))
+					new_length = increment(data['count'], data['length'], int(tweet['length']))
 
-				aggregated[day] = data
-			except KeyError:
-				# Using this catch to add new objects to the dictionary
-				aggregated[day] = {
-					'count': 1, 
-					'sentiment': float(tweet['sentiment']), 
-					'subjectivity': float(tweet['subjectivity']),
-					'reading_ease': float(tweet['reading_ease']), 
-					'grade_level': float(tweet['grade_level']),
-					'retweet_count': int(tweet['retweet_count']),
-					'favorite_count': int(tweet['favorite_count']),
-					'length': int(tweet['length']),
-					'subject': 'all'
-				}
-				
-			except IndexError:
-				# Tweets with improperly formatted dates won't be aggregated 
-				pass
+					data['count'] += 1
+					data['subjectivity'] = new_subj
+					data['sentiment'] = new_sent
+					data['reading_ease'] = new_reading
+					data['grade_level'] = new_grade
+					data['retweet_count'] = new_retweet_ct
+					data['favorite_count'] = new_favorite_ct
+					data['length'] = new_length
+					data['subject'] = 'all'
+
+					aggregated[day] = data
+				except KeyError:
+					# Using this catch to add new objects to the dictionary
+					aggregated[day] = {
+						'count': 1, 
+						'sentiment': float(tweet['sentiment']), 
+						'subjectivity': float(tweet['subjectivity']),
+						'reading_ease': float(tweet['reading_ease']), 
+						'grade_level': float(tweet['grade_level']),
+						'retweet_count': int(tweet['retweet_count']),
+						'favorite_count': int(tweet['favorite_count']),
+						'length': int(tweet['length']),
+						'subject': 'all'
+					}
+				except IndexError:
+					# Tweets with improperly formatted dates won't be aggregated 
+					pass
 
 		except AttributeError:
 			# Tweets with no date won't be aggregated 
@@ -530,8 +544,94 @@ def aggregate_day(tweet_list: list):
 
 	return aggregated
 
+def group_tweets_by_subject_day(tweet_list: list, subject):
+	''' aggregate tweet_list, group by subject ''' 
+
+	aggregated = dict()
+
+	for tweet in tweet_list:
+		if tweet[subject] == 0:
+			pass
+		else:
+			try: 
+				date = tweet['created_at'].split(" ")[0].split("-")
+
+				if date[2] == '2020':
+
+					try:
+						day = f'{date[0]}-{date[1]}'
+						data = aggregated[day] 
+
+						new_subj = increment(data['count'], data['subjectivity'], tweet['subjectivity'])
+						new_sent = increment(data['count'], data['sentiment'], tweet['sentiment'])
+						new_reading = increment(data['count'], data['reading_ease'], tweet['reading_ease'])
+						new_grade = increment(data['count'], data['grade_level'], tweet['grade_level'])
+						new_retweet_ct = increment(data['count'], data['retweet_count'], int(tweet['retweet_count']))
+						new_favorite_ct = increment(data['count'], data['favorite_count'], int(tweet['favorite_count']))
+						new_length = increment(data['count'], data['length'], int(tweet['length']))
+
+						data['count'] += 1
+						data['subjectivity'] = new_subj
+						data['sentiment'] = new_sent
+						data['reading_ease'] = new_reading
+						data['grade_level'] = new_grade
+						data['retweet_count'] = new_retweet_ct
+						data['favorite_count'] = new_favorite_ct
+						data['length'] = new_length
+
+						aggregated[day] = data
+					except KeyError:
+						# Using this catch to add new objects to the dictionary
+						aggregated[day] = {
+							'count': 1, 
+							'sentiment': float(tweet['sentiment']), 
+							'subjectivity': float(tweet['subjectivity']),
+							'reading_ease': float(tweet['reading_ease']), 
+							'grade_level': float(tweet['grade_level']),
+							'retweet_count': int(tweet['retweet_count']),
+							'favorite_count': int(tweet['favorite_count']),
+							'length': int(tweet['length']),
+							'subject': subject
+						}
+					except IndexError:
+						# Tweets with improperly formatted dates won't be aggregated 
+						pass
+
+			except AttributeError:
+				# Tweets with no date won't be aggregated 
+				pass
+
+	return aggregated
 
 
+def write_calendar_csv(aggregated_day: dict, aggregated_subject: dict, filename: str):
+	''' update a csv with aggregated data ''' 
+
+	csv_columns = ['day', 'count', 'sentiment', 'subjectivity', 'reading_ease', 'grade_level', 'retweet_count', 'favorite_count', 'length', 'subject']
+
+	try:
+		with open(filename, 'w', newline='') as f:
+			csv_writer = csv.writer(f, delimiter=",")
+			csv_writer.writerow(csv_columns)
+			
+			for data in aggregated_day:
+				values = list(aggregated_day[data].values())
+				values.insert(0, data)
+				
+				csv_writer.writerow(values)
+
+			for subject in aggregated_subject:
+				for data in subject: 
+					values = list(subject[data].values())
+					values.insert(0, data)
+					
+					csv_writer.writerow(values)
+
+
+	except IOError:
+		print("IOError")
+
+	return 
 
 
 
@@ -585,9 +685,12 @@ if __name__ == '__main__':
 	aggregated_subject = add_subject_aggregates(tweet_list)
 	write_aggregated_csv(aggregated_month, aggregated_subject, 'new_data/aggregated_tweets.csv')
 	write_data_csv(tweet_list, 'new_data/tweet_data.csv')
-	# aggregated_day = aggregate_day(tweet_list)
-	# write_aggregated_csv(aggregate_day, aggregated_subject, 'calendar_tweets.csv')
 
+
+	aggregated_day = group_tweets_by_day(tweet_list)
+	aggregated_subject_day = add_subject_aggregates_day(tweet_list)
+	write_calendar_csv(aggregated_day, aggregated_subject_day, 'new_data/calendar_tweets.csv')
+	
 
 
 
