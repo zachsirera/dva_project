@@ -46,6 +46,12 @@ def get_events():
 	return get_csv_data('new_data/events.csv')
 
 
+def get_calendar():
+	''' get the calendar data to display ''' 
+
+	return get_csv_data('new_data/calendar_tweets.csv')
+
+
 
 
 

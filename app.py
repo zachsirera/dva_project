@@ -27,7 +27,9 @@ def home():
 	reduced_tweet_data = random.sample(tweet_data, int(0.1 * len(tweet_data)))
 	# tweet_data = []
 
-	return render_template('home.html', events=events, aggregated_tweets=aggregated_tweets, tweet_data=reduced_tweet_data)
+	calendar_data = api.get_calendar()
+
+	return render_template('home.html', events=events, aggregated_tweets=aggregated_tweets, tweet_data=reduced_tweet_data, calendar_data=calendar_data)
 
 
 @app.route('/methodology')
