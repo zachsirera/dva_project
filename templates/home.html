@@ -14,6 +14,7 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-dsv.v1.min.js"></script>
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script src="https://d3js.org/d3-scale.v3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js"></script>
 
 <!-- Import jQuery -->
@@ -535,9 +536,9 @@
 	        .text("Tweets Sent");
 
 		// define the color scale to use to display sentiment data 
-		var sentiment_color_scale = d3.scaleSequential(d3.interpolatePuOr).domain([-1,1]),
-			subjectivity_color_scale = d3.scaleSequential(d3.interpolatePiYG).domain([0,1]),
-			grade_level_color_sale = d3.scaleSequential(d3.interpolateBlues)
+		var sentiment_color_scale = d3.scaleSequentialSymlog(d3.interpolatePuOr).domain([-1,1]),
+			subjectivity_color_scale = d3.scaleSequentialSymlog(d3.interpolatePiYG).domain([0,1]),
+			grade_level_color_sale = d3.scaleSequentialPow(d3.interpolateBlues)
 				.domain(d3.extent(aggregated_tweets, function(d) { return +d['grade_level']; }));
 
 	    // Add rectangles to bar graph
