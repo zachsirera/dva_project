@@ -551,9 +551,9 @@
 	        .append("rect")
 	        .attr("fill", function(d) { 
 	        	if (attribute == 'sentiment') {
-	        		return sentiment_color_scale( +d[attribute] ); 
+	        		return sentiment_color_scale( 2 * +d[attribute] ); 
 	        	} else if (attribute == 'subjectivity') {
-	        		return subjectivity_color_scale( +d[attribute] );
+	        		return subjectivity_color_scale( (+d[attribute] - 0.5) + +d[attribute] );
 	        	} else if (attribute == 'grade_level') {
 	        		return grade_level_color_sale( +d[attribute]);
 	        	};
@@ -570,9 +570,9 @@
 			.on('mouseout', function(d){
 				d3.select(this).style("fill", function(d) { 
 					if (attribute == 'sentiment') {
-		        		return sentiment_color_scale( +d[attribute] ); 
+		        		return sentiment_color_scale( 2 * +d[attribute] ); 
 		        	} else if (attribute == 'subjectivity') {
-		        		return subjectivity_color_scale( +d[attribute] );
+		        		return subjectivity_color_scale( (+d[attribute] - 0.5) + +d[attribute] );
 		        	} else if (attribute == 'grade_level') {
 		        		return grade_level_color_sale( +d[attribute]);
 		        	}; })
@@ -666,7 +666,7 @@
 	    		if (attribute == 'sentiment') {
 	    			return "Positive";
 	    		} else if (attribute == 'subjectivity') {
-	    			return "Subjective";
+	    			return "Objective";
 	    		} else if (attribute == 'grade_level') {
 	    			return "12th Grade";
 	    		}
@@ -682,7 +682,7 @@
 	    		if (attribute == 'sentiment') {
 	    			return "Negative";;
 	    		} else if (attribute == 'subjectivity') {
-	    			return "Objective";;
+	    			return "Subjective";;
 	    		} else if (attribute == 'grade_level') {
 	    			return "1st Grade";
 	    		}
