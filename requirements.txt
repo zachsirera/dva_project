@@ -10,3 +10,6 @@ pickleshare==0.7.5
 numpy==1.19.1
 gunicorn==20.0.4
 tweepy==3.9.0
+wordcloud==1.8.0
+gensim==3.8.0
+nltk==3.5
