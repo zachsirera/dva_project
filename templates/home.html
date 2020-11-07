@@ -237,7 +237,7 @@
 	        .attr("y", svg_4_margin.top / 2)
 	        .attr("x", svg_4_width / 2)
 	        .attr("text-anchor", "middle")
-	        .style("font-size", "20px")
+	        .style("font-size", "30px")
             .text("Trump's Year in Tweets: 2020 - " + header_labels[subj])
 
         // define the color scale to use to display sentiment data 
@@ -311,6 +311,120 @@
 			.attr("text-anchor", "middle")
 			.style("fill", "#a9a9a9")
 			.text(function(d) {	return d; })
+
+		// Create shade legend for attribute color scale 
+	    var sentiments = [0.6, 0.3, 0.0, -0.3, -0.6] 
+	    var subjectivities = [0.0, 0.2, 0.4, 0.6, 0.8]
+	    var grade_levels = [12, 9, 6, 3, 1]
+
+	    // define top of legend in case we change dimensions of chart
+	    var top = 50;
+
+
+		// Create dynamic legend
+	    g_4.selectAll("legend_squares")
+	    	.data(function() {
+	    		if (attribute == 'sentiment') {
+	    			return sentiments;
+	    		} else if (attribute == 'subjectivity') {
+	    			return subjectivities;
+	    		} else if (attribute == 'grade_level') {
+	    			return grade_levels;
+	    		}
+	    	})
+	    	.enter()
+	    	.append("rect")
+	    	.attr("fill", function(d) {
+	    		if (attribute == 'sentiment') {
+	    			return sentiment_color_scale( d );;
+	    		} else if (attribute == 'subjectivity') {
+	    			return subjectivity_color_scale( d );;
+	    		} else if (attribute == 'grade_level') {
+	    			return grade_level_color_sale( d );
+	    		}
+	    	})
+	        .attr("x", function(d, i) { return svg_4_margin.left + i * 15 + 50; })
+	        .attr("y", svg_4_margin.top - 50)
+	        .attr("width", 10)
+	        .attr("height", 10);
+	    g_4.append("text")
+	    	.attr("transform", "translate(0,0)")
+	        .attr("text-anchor", "start")
+	        .attr("x", svg_4_margin.left + 50)
+	        .attr("y", svg_4_margin.top - 60)
+	        .text(function() {
+	    		if (attribute == 'sentiment') {
+	    			return "Sentiment";;
+	    		} else if (attribute == 'subjectivity') {
+	    			return "Subjectivity";;
+	    		} else if (attribute == 'grade_level') {
+	    			return "Reading Level";
+	    		}
+	    	})
+	        .attr("fill", theme.grey)
+	        .style("font-size", "15px");
+	    g_4.append("text")
+	    	.attr("transform", "translate(0,0)")
+	        .attr("text-anchor", "end")
+	        .attr("x", svg_4_margin.left + 35)
+	        .attr("y", svg_4_margin.top - 40)
+	        .text(function() {
+	    		if (attribute == 'sentiment') {
+	    			return "Positive";
+	    		} else if (attribute == 'subjectivity') {
+	    			return "Objective";
+	    		} else if (attribute == 'grade_level') {
+	    			return "12th Grade";
+	    		}
+	    	})
+	        .attr("fill", theme.grey)
+	        .style("font-size", "12px");
+	    g_4.append("text")
+	    	.attr("transform", "translate(0,0)")
+	        .attr("text-anchor", "start")
+	        .attr("x", svg_4_margin.left + 130)
+	        .attr("y", svg_4_margin.top - 40)
+	        .text(function() {
+	    		if (attribute == 'sentiment') {
+	    			return "Negative";;
+	    		} else if (attribute == 'subjectivity') {
+	    			return "Subjective";;
+	    		} else if (attribute == 'grade_level') {
+	    			return "1st Grade";
+	    		}
+	    	})
+	        .attr("fill", theme.grey)
+	        .style("font-size", "12px");
+
+	    // Add the tweet count square size legend
+	    var sizes = [5, 17.5, 30],
+		    spacing_1 = [0, 5, 17.5],
+		    spacing_2 = [0, 0, 5],
+		    left = 100;
+
+	    g_4.selectAll("num_tweets_squares")
+	    	.data(sizes)
+	    	.enter()
+	    	.append("rect")
+	    	.style("fill", "teal")
+	    	.attr("x", function(d, i) { return left + 1100 + 20 * i + spacing_1[i] + spacing_2[i]; })
+	        .attr("y", function(d) { return svg_4_margin.top - 40 - d})
+	        .attr("width", function(d) { return d; })
+	        .attr("height", function(d) { return d; });
+	    g_4.append("text")
+	    	.attr("text-anchor", "end")
+	    	.attr("x", left + 1080)
+	    	.attr("y", svg_4_margin.top - 40)
+	    	.attr("fill", theme.grey)
+	    	.style("font-size", "12px")
+	    	.text("A few tweets")
+	   	g_4.append("text")
+	    	.attr("text-anchor", "end")
+	    	.attr("x", left + 1290)
+	    	.attr("y", svg_4_margin.top - 40)
+	    	.attr("fill", theme.grey)
+	    	.style("font-size", "12px")
+	    	.text("A lot of tweets")
 
 
 
