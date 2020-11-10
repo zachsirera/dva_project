@@ -145,6 +145,9 @@
 		});
 
 	function ready(events, aggregated_tweets, tweet_data, calendar_data) {
+		const latestTweet = tweet_data.sort((data1, data2) => new Date(data2.created_at) - new Date(data1.created_at))[0];
+		const latestDate = new Date(latestTweet.created_at);
+		$('#updated-at-span').text(`${latestDate.getMonth() + 1}/${latestDate.getDay() + 1}/${latestDate.getUTCFullYear()}`);
 		
 
 		var default_subj = 'all',
