@@ -32,51 +32,53 @@
 	color: #FFA500;
 	border-radius: 1px;
 	pointer-events: none;
+	max-width: 200px;
 }
 
 </style>
 
 {% endblock %}
 
-
-
-
 {% block main %}
 
-
-
 <script type="text/javascript">
-
-
 	// Color scheme - Add more as needed 
 	var theme = {grey: '#696969', select: '#FF0000'};
-
 
 	// parse time from aggregated_tweets.csv, it's formatted 10-2020 for October, 2020
 	var parse_agg = d3.timeParse("%Y-%m");
 	var parse_events = d3.timeParse("%m-%d-%Y")
-	
+
 
 	// enter code to define tooltip
-	var tip = d3.tip()
+	var barGraphTip = d3.tip()
 		.attr('class', 'd3-tip')
 		.offset([-10, 0])
 		.style("line-height", 1.5)
 		.style("background", "rgba(0, 0, 0, 0.75)")
 		.style("color", "white")
 		.style("padding", "10px")
-		.style("border-radius", "10px");
-
-
-	tip.html(d => `<strong>${d['month']}</strong><br>
-					${d['count']} tweets sent<br>
-					Sentiment: ${Math.round(+d['sentiment'] * 100)/100} <br>
-					Subjectivity: ${Math.round(+d['subjectivity'] * 100)/100} <br>
-					${Math.round(+d['grade_level'])}th grade reading level`);
-
-
-
-
+		.style("border-radius", "10px")
+		.html(d =>
+			`<strong>${d['month']}</strong><br>
+			${d['count']} tweets sent<br>
+			Sentiment: ${Math.round(+d['sentiment'] * 100)/100} <br>
+			Subjectivity: ${Math.round(+d['subjectivity'] * 100)/100} <br>
+			${Math.round(+d['grade_level'])}th grade reading level`
+		);
+	
+	var scatterPlotTip = d3.tip()
+		.attr('class', 'd3-tip')
+		.offset([-10, 0])
+		.style("line-height", 1.5)
+		.style("background", "rgba(0, 0, 0, 0.75)")
+		.style("color", "white")
+		.style("padding", "10px")
+		.style("border-radius", "10px")
+		.html(d =>
+			`<div>${d.text}</div>
+			<div>${d.created_at}</div>`
+		);
 
 	// SVG 1 - Bar graph
 	// define margin and dimensions for svg_1
@@ -89,7 +91,7 @@
 		.attr("width", svg_1_width)
 		.attr("height", svg_1_height);
 
-	svg_1.call(tip);
+	svg_1.call(barGraphTip);
 
 	// SVG 2 - Scatter plot 
 	// define margin and dimensions for svg_2
@@ -101,6 +103,8 @@
 		.append("svg")
 		.attr("width", svg_2_width)
 		.attr("height", svg_2_height);
+
+	svg_2.call(scatterPlotTip);
 
 	// SVG 3 - Word Clouds
 	// define margin and dimensions for svg_3
@@ -278,7 +282,7 @@
 	        .attr("height", function(d) { return square_scale(d['count']); })
 	        .on('mouseover',function(d) {
 				d3.select(this).style('fill', theme.select)
-				tip.show(d, this);
+				barGraphTip.show(d, this);
 			})
 			.on('mouseout', function(d){
 				d3.select(this).style("fill", function(d) { 
@@ -289,7 +293,7 @@
 		        	} else if (attribute == 'grade_level') {
 		        		return grade_level_color_sale( +d[attribute]);
 		        	}; })
-				tip.hide(d, this);
+				barGraphTip.hide(d, this);
 			});
 
 		var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -524,7 +528,13 @@
 	    	.style("opacity", 0.25)
 	    	.attr("cx", function(d) { return scatter_x( +d[x_attribute] ) - svg_2_margin.left; })
 	        .attr("cy", function(d) { return scatter_y( +d[y_attribute] ); })
-	        .attr("r", 4);
+	        .attr("r", 4)
+			.on("mouseover", function(d) {
+				scatterPlotTip.show(d, this);
+			})
+			.on("mouseout", function(d) {
+				scatterPlotTip.hide(d, this);
+			});
 
 	    // add labels to scatter plot
 	    // y axis 
@@ -785,7 +795,7 @@
 			.attr("class",function(d) { return getDaysInMonth( d['month']);})
 	        .on('mouseover',function(d){
 				d3.select(this).style('fill', theme.select)
-				tip.show(d, this);
+				barGraphTip.show(d, this);
 			})
 			.on('mouseout', function(d){
 				d3.select(this).style("fill", function(d) { 
@@ -796,7 +806,7 @@
 		        	} else if (attribute == 'grade_level') {
 		        		return grade_level_color_sale( +d[attribute]);
 		        	}; })
-				tip.hide(d, this);
+				barGraphTip.hide(d, this);
 			});
 
 	    // Add event markers to bar graph
