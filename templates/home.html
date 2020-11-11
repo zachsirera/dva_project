@@ -59,13 +59,32 @@
 		.style("color", "white")
 		.style("padding", "10px")
 		.style("border-radius", "10px")
-		.html(d =>
-			`<strong>${d['month']}</strong><br>
-			${d['count']} tweets sent<br>
-			Sentiment: ${Math.round(+d['sentiment'] * 100)/100} <br>
-			Subjectivity: ${Math.round(+d['subjectivity'] * 100)/100} <br>
-			${Math.round(+d['grade_level'])}th grade reading level`
-		);
+		.html(d => {
+			const gradeLevel = Math.round(d['grade_level']);
+			let gradeLevelString = gradeLevel;
+			if (gradeLevel === 1) {
+				gradeLevelString += 'st';
+			} else if (gradeLevel === 2) {
+				gradeLevelString += 'nd';
+			} else if (gradeLevel === 3) {
+				gradeLevelString += 'rd';
+			} else {
+				gradeLevelString += 'th';
+			}
+
+			let tipHtml = '';
+			if (d['month']) {
+				tipHtml += `<strong>${d['month']}</strong><br>`;
+			}
+
+			tipHtml += `
+				${d['count']} tweets sent<br>
+				Sentiment: ${Math.round(d['sentiment'] * 100)/100} <br>
+				Subjectivity: ${Math.round(d['subjectivity'] * 100)/100} <br>
+				${gradeLevelString} grade reading level
+			`;
+			return tipHtml;
+		});
 	
 	var scatterPlotTip = d3.tip()
 		.attr('class', 'd3-tip')
