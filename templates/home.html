@@ -49,13 +49,50 @@
 	// enter code to define tooltip
 	var barGraphTip = d3.tip()
 		.attr('class', 'd3-tip')
-		.offset([-10, 0])
+		.offset(function(d) 
+		{
+			//This is the default tooltip vertical position when there is no risk of it getting outside of the plot
+			var defaulTooltipPosition = -10;
+			
+			//The goal here is to place the tooltip in different positions depending on how high the bars in the barplot are
+			if (d.source == "barplot")
+			{
+				//This is not the actual tooltip height. It's an estimate. If we want the tooltip to appear lower we would increase
+				//this number
+				var tooltipHeight = 100;
+				//console.log(d.tooltipBasePosition + tooltipHeight);
+				//console.log(svg_1_height);
+				
+				//If the tooltip is showing too high in the plot (potentially getting outside the plot), then move it down.
+				if((d.tooltipBasePosition + tooltipHeight)>svg_1_height)
+				{
+					//Here I calculate how much I should move it down and then add that much in the amount I will offset.
+					var extra = (d.tooltipBasePosition + tooltipHeight) - svg_1_height;
+					//console.log("extra "+extra.toString());
+					return [-10+extra,0];
+				
+				}
+				else
+				{
+					
+					return [-10,0];
+				}
+				
+			}
+			else
+			{
+				return [-10, 0];
+			}
+			
+		})
 		.style("line-height", 1.5)
 		.style("background", "rgba(0, 0, 0, 0.75)")
 		.style("color", "white")
 		.style("padding", "10px")
 		.style("border-radius", "10px")
+		.style("width","140px")
 		.html(d => {
+
 			const gradeLevel = Math.round(d['grade_level']);
 			let gradeLevelString = gradeLevel;
 			if (gradeLevel === 1) {
@@ -301,6 +338,7 @@
 			})
 			.on('mouseout', function(d){
 				d3.select(this).style("fill", function(d) { 
+									
 					if (attribute == 'sentiment') {
 		        		return sentiment_color_scale( 2 * +d[attribute] ); 
 		        	} else if (attribute == 'subjectivity') {
@@ -810,6 +848,13 @@
 			.attr("class",function(d) { return getDaysInMonth( d['month']);})
 	        .on('mouseover',function(d){
 				d3.select(this).style('fill', theme.select)
+				
+				//Here I add this because we use the same tooltip object in two plots, however, the behaviour we expect from the tooltip
+				//might be different in these plots, so by adding the source object, I can access inside the deffinition of the tooltip
+				//where it's been called and change its behavior based on the source.
+				d.source = "barplot";
+				d.tooltipBasePosition =  svg_1_height - svg_1_margin.top - svg_1_margin.bottom - bar_graph_y(d['count']);
+				
 				barGraphTip.show(d, this);
 			})
 			.on('mouseout', function(d){

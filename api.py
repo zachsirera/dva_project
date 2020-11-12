@@ -8,7 +8,7 @@ def get_csv_data(path_to_file):
 
 	data_list = []
 
-	with open(path_to_file, 'r') as f:
+	with open(path_to_file, 'r',encoding="utf8") as f:
 		csv_reader = csv.reader(f, delimiter=',')
 		header_labels = list(next(csv_reader))
 
