@@ -36,7 +36,6 @@
 {% endblock %}
 
 {% block main %}
-<div class="updated-at-wrap">Updated at: <span id="updated-at-span">--/--/----</span></div>
 <script type="text/javascript">
 	// Color scheme - Add more as needed 
 	var theme = {grey: '#696969', select: '#FF0000'};
@@ -200,9 +199,25 @@
 
 		});
 
+	function convertTImestampToDate(timestamp) {
+		const actualDate = new Date();
+
+		const [monthPlusOne, date, year] = timestamp.split(" ")[0].split("-")
+		actualDate.setMonth(Number(monthPlusOne) - 1);
+		actualDate.setDate(Number(date));
+		actualDate.setYear(Number(year));
+
+		return actualDate;
+	}
+
 	function ready(events, aggregated_tweets, tweet_data, calendar_data) {
-		const latestTweet = tweet_data.sort((data1, data2) => new Date(data2.created_at) - new Date(data1.created_at))[0];
-		const latestDate = new Date(latestTweet.created_at);
+		const latestTweet = tweet_data.sort((data1, data2) => {
+			const actualDate1 = convertTImestampToDate(data1.created_at);
+			const actualDate2 = convertTImestampToDate(data2.created_at);
+
+			return actualDate2 - actualDate1;
+		})[0]
+		const latestDate = convertTImestampToDate(latestTweet.created_at);
 		$('#updated-at-span').text(`${latestDate.getMonth() + 1}/${latestDate.getDay() + 1}/${latestDate.getUTCFullYear()}`);
 		
 
