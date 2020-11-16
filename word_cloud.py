@@ -6,12 +6,60 @@ import gensim
 from gensim.utils import simple_preprocess
 from nltk.corpus import stopwords
 from collections import Counter
-from wordcloud import WordCloud
+from wordcloud import WordCloud, get_single_color_func
 
 SUBJECTS = ["economy", "covid", "foreign_policy", "domestic_policy", "impeachment", "other"]
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+
+
+
+
+# For coloring
+# Source https://amueller.github.io/word_cloud/auto_examples/colored_by_group.html
+
+class GroupedColorFunc(object):
+    """Create a color function object which assigns DIFFERENT SHADES of
+       specified colors to certain words based on the color to words mapping.
+
+       Uses wordcloud.get_single_color_func
+
+       Parameters
+       ----------
+       color_to_words : dict(str -> list(str))
+         A dictionary that maps a color to the list of words.
+
+       default_color : str
+         Color that will be assigned to a word that's not a member
+         of any value from color_to_words.
+    """
+
+    def __init__(self, color_to_words, default_color):
+        self.color_func_to_words = [
+            (get_single_color_func(color), set(words))
+            for (color, words) in color_to_words.items()]
+
+        self.default_color_func = get_single_color_func(default_color)
+
+    def get_color_func(self, word):
+        """Returns a single_color_func associated with the word"""
+        try:
+            color_func = next(
+                color_func for (color_func, words) in self.color_func_to_words
+                if word in words)
+        except StopIteration:
+            color_func = self.default_color_func
+
+        return color_func
+
+    def __call__(self, word, **kwargs):
+        return self.get_color_func(word)(word, **kwargs)
+
+# End coloring
+
+
 
 
 def remove_users(tweet, pattern1, pattern2):
@@ -67,10 +115,46 @@ def create_cloud(df, filename):
     wordcloud = WordCloud(width=940, height=500, random_state=21, max_font_size=110, background_color='white',
                           max_words=100, normalize_plurals=False).generate(all_words)
 
+    # Top 100 words' sentiment for coloring
     sentiment = {}
     for key in wordcloud.words_.keys():
         key_df = df[df['tidy_tweet'].str.contains(key)]
         sentiment[key] = key_df['sentiment'].mean()
+
+    # Each word will go into one of these color bins
+    color_to_words = {
+        '#d7191c': [],
+        '#fdae61': [],
+        '#ffffbf': [],
+        '#a6d96a': [],
+        '#1a9641': [],
+    }
+
+    colors = ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a', '#1a9641']
+
+    negative = -0.15
+    positive = 0.6
+
+    sentiment_cutoffs = np.arange(negative, positive, ((positive-negative)/5))
+
+    for key in sentiment.keys():
+        color_index = np.digitize(sentiment[key], sentiment_cutoffs)
+        color_index = min(color_index, len(sentiment_cutoffs) - 1) # keep the value in range
+        # print(key, sentiment[key])
+        color_to_words[colors[color_index]].append(key)
+
+    # Words that are not in any of the color_to_words values
+    # will be colored with a grey single color function
+    default_color = 'grey'
+
+    # Create a color function with multiple tones
+    grouped_color_func = GroupedColorFunc(color_to_words, default_color)
+
+    # Apply our color function
+    wordcloud.recolor(color_func=grouped_color_func)
+
+
+
 
 
     plt.figure(figsize=(9.4, 5))
@@ -165,3 +249,5 @@ if __name__ == "__main__":
 # plt.title('Top 25 Hashtags of dataset', fontsize=12, fontweight="bold")
 # plt.show()
 # df = df.drop(['hashtags'], axis=1)
+
+
