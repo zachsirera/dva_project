@@ -47,7 +47,7 @@ def tokenize(tweet):
 
 def remove_stopwords(tweets):
     stop_words = stopwords.words('english')
-    stop_words.extend(['from', 'https', 'twitter', 'twitt', 'cont', 'tinyurl' ])
+    stop_words.extend(['from', 'https', 'twitter', 'twitt', 'cont', 'tinyurl', 'http', 'pqpvfm' ])
     return [[word for word in simple_preprocess(str(tweet)) if word not in stop_words] for tweet in tweets]
 
 def rejoin_words(row):
@@ -65,7 +65,13 @@ def create_cloud(df, filename):
     counts = Counter(tokens)
 
     wordcloud = WordCloud(width=940, height=500, random_state=21, max_font_size=110, background_color='white',
-                          max_words=200, normalize_plurals=False).generate(all_words)
+                          max_words=100, normalize_plurals=False).generate(all_words)
+
+    sentiment = {}
+    for key in wordcloud.words_.keys():
+        key_df = df[df['tidy_tweet'].str.contains(key)]
+        sentiment[key] = key_df['sentiment'].mean()
+
 
     plt.figure(figsize=(9.4, 5))
     plt.imshow(wordcloud, interpolation="bilinear")
@@ -79,13 +85,13 @@ if __name__ == "__main__":
 
 
     # Read csv into dataframe
-    df = pd.read_csv('tweets.csv', quotechar='', quoting=3).dropna()
-    df_subjects = pd.read_csv('new_data/tweet_data.csv')
+    # df = pd.read_csv('tweets.csv', quotechar='', quoting=3).dropna()
+    df = pd.read_csv('new_data/tweet_data.csv')
 
     # Convert data types and merge dataframes
     df['id_str'] = df['id_str'].apply(float)
-    df_subjects['id_str'] = df_subjects['id_str'].apply(float)
-    df = pd.merge(df, df_subjects, on='id_str', suffixes=("", "_y"))
+    # df_subjects['id_str'] = df_subjects['id_str'].apply(float)
+    # df = pd.merge(df, df_subjects, on='id_str', suffixes=("", "_y"))
 
     # Convert datatypes, drop duplicate tweets
     df['text'] = df['text'].apply(str)
@@ -106,13 +112,16 @@ if __name__ == "__main__":
     # df['tidy_tweet'] = np.vectorize(remove_hashtags)(df['tidy_tweet'], "# [\w]*", "#[\w]*")
 
     # Remove links
-    # df['tidy_tweet'] = np.vectorize(remove_links)(df['tidy_tweet'])
+    df['tidy_tweet'] = np.vectorize(remove_links)(df['tidy_tweet'])
 
     # Remove punctuation, numbers, and special characters
     df['tidy_tweet'] = df['tidy_tweet'].str.replace("[^a-zA-Z#]", " ")
 
     # Remove short words (length 3 and below)
     df['tidy_tweet'] = df['tidy_tweet'].apply(lambda x: ' '.join([w for w in x.split() if len(w) > 3]))
+
+    # Remove rows with empty tweets
+    df = df[df['tidy_tweet'].astype(bool)]
 
     # Tokenize words and clean-up punctuations
     df['tidy_tweet_tokens'] = list(tokenize(df['tidy_tweet']))
