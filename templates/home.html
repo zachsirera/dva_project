@@ -37,6 +37,7 @@
 
 {% block main %}
 <script type="text/javascript">
+	d3.selectAll("#body_main main").attr("class", "text-center");
 	// Color scheme - Add more as needed 
 	var theme = {grey: '#696969', select: '#FF0000'};
 
@@ -133,11 +134,14 @@
 
 	// SVG 1 - Bar graph
 	// define margin and dimensions for svg_1
+	var windowWidth = window.innerWidth;
+	var leftRightPadding = 50;
+
 	var svg_1_height = 225,
-		svg_1_width = 1440,
+		svg_1_width = windowWidth - leftRightPadding * 2,
 		svg_1_margin = {top: 0, right: 110, bottom: 50, left: 65};
 
-	var svg_1 = d3.select("body")
+	var svg_1 = d3.select("#body_main > main")
 		.append("svg")
 		.attr("width", svg_1_width)
 		.attr("height", svg_1_height);
@@ -147,10 +151,10 @@
 	// SVG 2 - Scatter plot 
 	// define margin and dimensions for svg_2
 	var svg_2_height = 500,
-		svg_2_width = 500,
+		svg_2_width = svg_1_width / 3,
 		svg_2_margin = {top: 50, right: 50, bottom: 50, left: 75};
 
-	var svg_2 = d3.select("body")
+	var svg_2 = d3.select("#body_main > main")
 		.append("svg")
 		.attr("width", svg_2_width)
 		.attr("height", svg_2_height);
@@ -160,10 +164,10 @@
 	// SVG 3 - Word Clouds
 	// define margin and dimensions for svg_3
 	var svg_3_height = 500,
-		svg_3_width = 940,
+		svg_3_width = svg_1_width / 3 * 2,
 		svg_3_margin = {top: 50, right: 100, bottom: 50, left: 75};
 
-	var svg_3 = d3.select("body")
+	var svg_3 = d3.select("#body_main > main")
 		.append("svg")
 		.attr("width", svg_3_width)
 		.attr("height", svg_3_height);
@@ -171,10 +175,10 @@
 	// SVG 4 - 2020 Tweeting Calendar 
 	// define margin and dimensions for svg_4
 	var svg_4_height = 700,
-		svg_4_width = 1440,
+		svg_4_width = svg_1_width,
 		svg_4_margin = {top: 100, right: 75, bottom: 50, left: 100};
 
-	var svg_4 = d3.select("body")
+	var svg_4 = d3.select("#body_main > main")
 		.append("svg")
 		.attr("width", svg_4_width)
 		.attr("height", svg_4_height);
