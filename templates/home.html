@@ -37,7 +37,9 @@
 
 {% block main %}
 <script type="text/javascript">
-	d3.selectAll("#body_main main").attr("class", "text-center");
+	$("#body_main main").addClass("text-center");
+	$(".show-on-index").removeClass("is-hidden").addClass("collapse navbar-collapse");
+	$(".back-to-index").text("How Trump tweets on:")
 	// Color scheme - Add more as needed 
 	var theme = {grey: '#696969', select: '#FF0000'};
 

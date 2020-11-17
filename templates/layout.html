@@ -64,6 +64,10 @@
       text-align: center;
     }
 
+    .is-hidden {
+      display: none !important;
+    }
+
     * {
       font-family: helvetica;
     }
@@ -75,15 +79,14 @@
   {% block head %}{% endblock %}
 
 </head>
-<body> 
-
+<body>
     <div id="header">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <a class="navbar-brand" href="/index" style="color: white;">
-              How Trump tweets on: 
+            <a class="navbar-brand back-to-index" href="/index" style="color: white;">
+              Back to Dashboard
             </a>
 
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="show-on-index is-hidden" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
 
                     <!-- Dropdown to select tweet subject to filter on  -->
