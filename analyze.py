@@ -52,7 +52,6 @@ def get_tweet_length(tweet_list: list):
 
 def parse_tweets(tweet_list: list):
 	''' parse tweets, remove artifacts that can confuse analytical methods '''
-
 	for index, tweet in enumerate(tweet_list):
 		if tweet['text'] != None:
 			tweet_separated = tweet['text'].split(" ")
@@ -93,8 +92,14 @@ def parse_tweets(tweet_list: list):
 					a = 1
 			else:
 				tweet_list[index]['text'] = " ".join(tweet_separated)
+	final_tweet_list = [] # don't add tweets that got through the filter above to the final_tweet_list
+	for i, tweet in enumerate(tweet_list):
+		if tweet['text'] != None and len(tweet['text']) <= 280:
+			final_tweet_list.append(tweet)
+		else:
+			a = 1
 
-	return remove_retweets(tweet_list)
+	return remove_retweets(final_tweet_list)
 
 
 
@@ -129,8 +134,9 @@ def remove_retweets(tweet_list: list):
 	new_tweet_list = []
 
 	for tweet in tweet_list:
-		if tweet['is_retweet'] == 'false':
+		if  tweet["is_retweet"] != "false" and tweet["length"] <280:
 			new_tweet_list.append(tweet)
+		
 
 
 

@@ -251,6 +251,8 @@
             svg_3.selectAll("*").remove();
             svg_4.selectAll("*").remove();
 			build_bar_graph(events, aggregated_tweets, new_subject, attr);
+			
+			//# if attr = "Lenght" filter tweet_data < 280
 			build_scatter_plot(tweet_data, new_subject, attr, data);
 			build_word_cloud(new_subject, yr);
 			build_calendar(calendar_data, new_subject, attr);
@@ -540,10 +542,13 @@
 		var g_2 = svg_2.append("g")
 			.attr("transform", "translate(" + svg_2_margin.left + "," + 0 + ")");
 			
-		//console.log("x_attribute "+x_attribute.toString());
+		console.log("y_attribute "+y_attribute.toString());
 		//console.log(tweet_data);
 
 		// define x axis for scatter plot 
+		
+		
+		
 		var scatter_x = d3.scaleLinear()
 			.range([svg_2_margin.left, svg_2_width - svg_2_margin.right]) // added margin.right
 			.domain(d3.extent(tweet_data, function(d) {
@@ -561,8 +566,10 @@
 	        .attr('transform', 'translate(' + (0 - svg_2_margin.left ) + ',' + (svg_2_height - svg_2_margin.bottom) + ')')
 	        .call(scatter_x_axis);
 
+		if (y_attribute == "length") 
+			tweet_data = tweet_data.filter(function(d){return d.length <= 280});
 
-	    // y axis 
+		
 		var scatter_y = d3.scaleLinear()
 			.range([svg_2_height - svg_2_margin.bottom, svg_2_margin.top])
 			.domain(d3.extent(tweet_data, function(d) {
@@ -572,6 +579,8 @@
 					return +d[y_attribute];
 				}
 			}));
+
+
 
 
 		var scatter_y_axis = d3.axisLeft().scale(scatter_y);
