@@ -22,7 +22,7 @@ def read_csv(filename: str):
 
 	tweet_list = []
 
-	with open(filename, 'r') as f:
+	with open(filename, 'r', encoding='utf-8') as f:
 		csv_reader = csv.reader(f, delimiter=',')
 		header_labels = list(next(csv_reader))
 
@@ -94,8 +94,9 @@ def parse_tweets(tweet_list: list):
 				tweet_list[index]['text'] = " ".join(tweet_separated)
 	final_tweet_list = [] # don't add tweets that got through the filter above to the final_tweet_list
 	for i, tweet in enumerate(tweet_list):
-		if tweet['text'] != None and len(tweet['text']) <= 280:
-			final_tweet_list.append(tweet)
+		# if tweet['text'] != None and len(tweet['text']) <= 280:
+		if tweet['text'] != '' and len(tweet['text']) <= 280:
+				final_tweet_list.append(tweet)
 		else:
 			a = 1
 
@@ -134,8 +135,9 @@ def remove_retweets(tweet_list: list):
 	new_tweet_list = []
 
 	for tweet in tweet_list:
-		if  tweet["is_retweet"] != "false" and tweet["length"] <280:
-			new_tweet_list.append(tweet)
+		# if  tweet["is_retweet"] != "false" and tweet["length"] <280:
+		if tweet["is_retweet"] != "true":
+				new_tweet_list.append(tweet)
 		
 
 
@@ -459,7 +461,7 @@ def write_data_csv(tweet_list: list, filename):
 	csv_columns = ['created_at', 'text', 'id_str', 'favorite_count', 'retweet_count', 'sentiment', 'subjectivity', 'reading_ease', 'grade_level', 'length', 'economy', 'covid', 'foreign_policy', 'domestic_policy', 'impeachment', 'other']
 
 	try:
-		with open(filename, 'w', newline='') as f:
+		with open(filename, 'w', newline='', encoding='utf-8') as f:
 			csv_writer = csv.writer(f, delimiter=",")
 			csv_writer.writerow(csv_columns)
 			
@@ -686,6 +688,7 @@ def get_bad_tweets(tweet_list: list):
 
 if __name__ == '__main__':
 	tweet_list = read_csv('tweets.csv')
+	# tweet_list = read_csv('test_file0.csv')
 
 	aggregated_month = group_tweets_by_month(tweet_list)
 	aggregated_subject = add_subject_aggregates(tweet_list)
