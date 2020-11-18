@@ -12,6 +12,7 @@
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <script src="https://d3js.org/d3-scale.v3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
 
 <!-- Import jQuery -->
 <script type='text/javascript' src='https://code.jquery.com/jquery-1.8.3.js'></script>
@@ -692,6 +693,9 @@
 		var slope = leastSquaresCoeff[0];
 		var intercept = leastSquaresCoeff[1];
 		var rsquared = leastSquaresCoeff[2];
+		var correlation = leastSquaresCoeff[3];
+		var slopeSE = leastSquaresCoeff[4];
+		var slopePValue = leastSquaresCoeff[5];
 		
 		//console.log("slope = "+slope.toString());
 		//console.log("intercept = "+intercept.toString());
@@ -725,8 +729,32 @@
 			.attr("y2", trendData[3])
 			.attr("stroke", "blue")
 			.attr("stroke-width", 1);
-	
+			
+		 svg_2.append("text")
+	        .attr("tansform", "translate(0," + svg_1_height + ")")
+	        .attr("y", svg_2_height - 420)
+	        .attr("x", svg_2_width / 2)
+	        .attr("text-anchor", "middle")
+			.text("Slope = "+slope.toFixed(2).toString());
+
+		 svg_2.append("text")
+	        .attr("tansform", "translate(0," + svg_1_height + ")")
+	        .attr("y", svg_2_height - 400)
+	        .attr("x", svg_2_width / 2)
+	        .attr("text-anchor", "middle")
+			.text("Slope Standard Error = "+slopeSE.toFixed(2).toString());			
+
+
+		 svg_2.append("text")
+	        .attr("tansform", "translate(0," + svg_1_height + ")")
+	        .attr("y", svg_2_height - 380)
+	        .attr("x", svg_2_width / 2)
+	        .attr("text-anchor", "middle")
+			.text("Slope P-Value = "+slopePValue.toFixed(2).toString());		
+
+
 	}
+	
 	function populateTweetDescription(aggregated_tweets, subject, attribute) {
 		var attributeSum = 0;
 		var attributeTotal = 0;
@@ -1014,25 +1042,44 @@
 
 	//This function returns the slope, intercept and rSquare of the linear regression
 	function leastSquares(xSeries, ySeries) {
-		var reduceSumFunc = function(prev, cur) { return prev + cur; };
+		var reduceSumFunc = function(accumulator, new_element) { return accumulator + new_element; };
 		
-		var xBar = xSeries.reduce(reduceSumFunc) * 1.0 / xSeries.length;
-		var yBar = ySeries.reduce(reduceSumFunc) * 1.0 / ySeries.length;
+		//Here we get the average for x and y
+		//The reduce function reduces the array to a single value. In this case
+		//what it's doing is adding the elements fron left to right. One element is passed
+		//at a time (variable new_element) and it's added to the previous total (accumulator)
+		//This total is then divided by the length of the series to get the average.
+		
+		var xAvg = xSeries.reduce(reduceSumFunc) * 1.0 / xSeries.length;
+		var yAvg = ySeries.reduce(reduceSumFunc) * 1.0 / ySeries.length;
 
-		var ssXX = xSeries.map(function(d) { return Math.pow(d - xBar, 2); })
+		//Here ss means sum of squares. 
+		var ssXX = xSeries.map(function(d) { return Math.pow(d - xAvg, 2); })
 			.reduce(reduceSumFunc);
 		
-		var ssYY = ySeries.map(function(d) { return Math.pow(d - yBar, 2); })
+		var ssYY = ySeries.map(function(d) { return Math.pow(d - yAvg, 2); })
 			.reduce(reduceSumFunc);
 			
-		var ssXY = xSeries.map(function(d, i) { return (d - xBar) * (ySeries[i] - yBar); })
+		var ssXY = xSeries.map(function(d, i) { return (d - xAvg) * (ySeries[i] - yAvg); })
+			.reduce(reduceSumFunc);
+		
+		//Here sd means sum of differences. 
+		var sdXX = xSeries.map(function(d) { return (d - xAvg); })
 			.reduce(reduceSumFunc);
 			
+		var sdYY = ySeries.map(function(d) { return (d - yAvg); })
+			.reduce(reduceSumFunc);		
+			
+		//Here we do the final calculations for the slope, intercept and rSquared.
 		var slope = ssXY / ssXX;
-		var intercept = yBar - (xBar * slope);
-		var rSquare = Math.pow(ssXY, 2) / (ssXX * ssYY);
+		var intercept = yAvg - (xAvg * slope);
+		var RSquare = Math.pow(ssXY, 2) / (ssXX * ssYY);
+		var correlation = (sdXX*sdYY)/((Math.sqrt(ssXX))*(Math.sqrt(ssYY)));
+		console.log("ssXY = "+ssXY.toString())
+		var slopeSE = Math.sqrt(ssYY/(xSeries.length - 2))/Math.sqrt(ssXX);
+		var slopePValue = jStat.ttest( slope/slopeSE, xSeries.length )
 		
-		return [slope, intercept, rSquare];
+		return [slope, intercept, RSquare, correlation, slopeSE, slopePValue];
 	}
 
 
