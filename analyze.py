@@ -238,7 +238,7 @@ def assign_subject_label(tweet_list: list):
 				tweet['economy'] = 1
 				counter += 1
 
-			# only difference is covid tweets can't exist before covid-19, so ~1/1/2020
+			# only difference is covid tweets can't exist before covid-19, so ~1/1/2020 and impeachment 2017
 			if covid_probs[index][1] > threshold:
 				if datetime.strptime(tweet['created_at'], "%m-%d-%Y %H:%M:%S") >= datetime.strptime("1 1 2020", "%m %d %Y"):
 					tweet['covid'] = 1
@@ -250,8 +250,9 @@ def assign_subject_label(tweet_list: list):
 				tweet['domestic_policy'] = 1
 				counter += 1
 			if impeachment_probs[index][1] > threshold:
-				tweet['impeachment'] = 1
-				counter += 1
+				if datetime.strptime(tweet['created_at'], "%m-%d-%Y %H:%M:%S") >= datetime.strptime("1 1 2017", "%m %d %Y"):
+					tweet['impeachment'] = 1
+					counter += 1
 				
 			if counter != 0:
 				tweet['other'] = 0

@@ -708,7 +708,7 @@
 		var y1 = slope * x1 + intercept;
 		var x2 = d3.max(xdata);
 		var y2 = slope * x2 + intercept;
-		
+
 		var x1Scaled = scatter_x(x1); 
 		var y1Scaled = scatter_y(y1); 
 		var x2Scaled = scatter_x(x2); 
@@ -949,7 +949,7 @@
 	    	.append("text")
 	        .attr("transform", "translate(0,0)")
 	        .attr("text-anchor", "end")
-	        .attr("x", function(d) { return bar_graph_x( parse_events( d['date'])) - svg_1_margin.left - 5; })
+	        .attr("x", function(d) { return Math.max(bar_graph_x( parse_events( d['date'])) - svg_1_margin.left - 5, 150); })
 	        .attr("y", 25)
 	        .text(function(d) { return d['title']; })
 	        .attr("fill", theme.grey)
