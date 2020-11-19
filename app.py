@@ -24,8 +24,29 @@ def home():
 	aggregated_tweets = api.get_aggregated_tweets()
 	# commenting this out for now, since it is much larger than we need. May want to random sample to reduce the amount of time it takes to load
 	tweet_data = api.get_tweet_data()
-	reduced_tweet_data = random.sample(tweet_data, int(0.25 * len(tweet_data)))
-	# tweet_data = []
+	#reduced_tweet_data = random.sample(tweet_data, int(0.25 * len(tweet_data)))
+
+	#Here I make sure I have at most the max allowed number of tweets by category
+	#but keep all the tweets for those categories where we have fewere than the max
+	#allowed
+	topics = ['covid','economy','foreign_policy','impeachment','domestic_policy']
+
+	reducedDict = {}
+
+	maxTweetsPerTopic = 4940
+
+	for workingTopic in topics:
+
+		workingResults =  [x for x in tweet_data if x[workingTopic] == '1']
+        
+		reducedWorkingResults = random.sample(workingResults, min(maxTweetsPerTopic,len(workingResults)))
+        
+		dataAsDic = {x['id_str']:x for x in reducedWorkingResults}
+        
+		reducedDict.update(dataAsDic)
+        
+	keys = reducedDict.keys()
+	reduced_tweet_data =  [reducedDict[wokingKey] for wokingKey in keys ]
 
 	calendar_data = api.get_calendar()
 
