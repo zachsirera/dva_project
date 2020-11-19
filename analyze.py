@@ -22,7 +22,7 @@ def read_csv(filename: str):
 
 	tweet_list = []
 
-	with open(filename, 'r') as f:
+	with open(filename, 'r', encoding='utf-8') as f:
 		csv_reader = csv.reader(f, delimiter=',')
 		header_labels = list(next(csv_reader))
 
@@ -35,7 +35,7 @@ def read_csv(filename: str):
 					tweet[header_labels[index]] = None
 			tweet_list.append(tweet)
 
-	return get_tweet_length(tweet_list)
+	return parse_tweets(tweet_list)
 
 
 
@@ -46,12 +46,13 @@ def get_tweet_length(tweet_list: list):
 		if tweet['text'] != None:
 			tweet['length'] = len(tweet['text'])
 
-	return parse_tweets(tweet_list)
+	return remove_retweets(tweet_list)
 
 
 
 def parse_tweets(tweet_list: list):
 	''' parse tweets, remove artifacts that can confuse analytical methods '''
+
 	for index, tweet in enumerate(tweet_list):
 		if tweet['text'] != None:
 			tweet_separated = tweet['text'].split(" ")
@@ -62,69 +63,40 @@ def parse_tweets(tweet_list: list):
 			# tweet_list[index]['text'] = tweet_joined.translate(str.maketrans('', '', string.punctuation))
 
 			# parse tweets that have numerous tweets in text field
-			nwords = len(tweet_separated)
 			new_line_in_text = '\n' in tweet['text']
-			if (len(tweet_separated) > 280) or (new_line_in_text) :
-				a = 1
-				new_tweets = " ".join(tweet_separated)
-				new_tweets1 = new_tweets.split('\n')
-				tweet_list[index]['text'] = new_tweets1[0]
-				for new_tweet in new_tweets1[1:]:
-					tweet_separated1 = new_tweet.split(" ")
-					tweet_separated1 = clean_characters(tweet_separated1)
-					header_labels = ['source', 'text', 'created_at', 'retweet_count', 'favorite_count', 'is_retweet', 'id_str', 'length']
-					tweet_dict = dict()
-					tweet_joined = " ".join(tweet_separated1).split(',')
-					for index, label in enumerate(header_labels):
+			tweet_list[index]['text'] = " ".join(tweet_separated)
 
-						if label == 'length':
-							try:
-								tweet_dict[header_labels[index]] = tweet_joined[index]
-							except IndexError:
-								tweet_dict[header_labels[index]] = len(tweet['text'])
-						else:
-
-							try:
-								tweet_dict[header_labels[index]] = tweet_joined[index]
-							except IndexError:
-								tweet_dict[header_labels[index]] = None
-					tweet_list.append(tweet_dict)
-					a = 1
-			else:
-				tweet_list[index]['text'] = " ".join(tweet_separated)
 	final_tweet_list = [] # don't add tweets that got through the filter above to the final_tweet_list
 	for i, tweet in enumerate(tweet_list):
-		if tweet['text'] != None and len(tweet['text']) <= 280:
+
+		if tweet['text'] != '' and len(tweet['text']) <= 280:
+			if len(tweet_separated) == 1:
+				print()
 			final_tweet_list.append(tweet)
 		else:
 			a = 1
 
-	return remove_retweets(final_tweet_list)
+	return get_tweet_length(final_tweet_list)
 
 
 
 def clean_characters(tweet_separated):
-	for word in tweet_separated:
-		# print(word)
+
+	cleaned_tweet = []
+	for i, word in enumerate(tweet_separated):
 		try:
-
-			# Put any more parsing rules here
-			if word[0] == '@':
-				tweet_separated.remove(word)
-			if word[0] == '#':
-				tweet_separated.remove(word)
-			if word[0] == '&':
-				tweet_separated.remove(word)
-			if word[0] == '.':
-				tweet_separated.remove(word)
-			if word[0:4] == 'http':
-				tweet_separated.remove(word)
-
-
+			if word[0] == '@' or word[0] == '#' or word[0] == '&' or word[0] == '.' or word[0:4] == 'http' or word == "RT":
+				pass
+			else:
+				if 'http' in word:
+					index = word.index("http")
+					word = word[0:index]
+				cleaned_tweet.append(word)
 		except IndexError:
 			# Occasionally tweets contain a double space. This can be problematic when splitting on " "
 			pass
-	return tweet_separated
+
+	return cleaned_tweet
 
 
 
@@ -134,8 +106,9 @@ def remove_retweets(tweet_list: list):
 	new_tweet_list = []
 
 	for tweet in tweet_list:
-		if  tweet["is_retweet"] != "false" and tweet["length"] <280:
-			new_tweet_list.append(tweet)
+		# if  tweet["is_retweet"] != "false" and tweet["length"] <280:
+		if tweet["is_retweet"] != "true":
+				new_tweet_list.append(tweet)
 		
 
 
@@ -265,7 +238,7 @@ def assign_subject_label(tweet_list: list):
 				tweet['economy'] = 1
 				counter += 1
 
-			# only difference is covid tweets can't exist before covid-19, so ~1/1/2020
+			# only difference is covid tweets can't exist before covid-19, so ~1/1/2020 and impeachment 2017
 			if covid_probs[index][1] > threshold:
 				if datetime.strptime(tweet['created_at'], "%m-%d-%Y %H:%M:%S") >= datetime.strptime("1 1 2020", "%m %d %Y"):
 					tweet['covid'] = 1
@@ -277,8 +250,9 @@ def assign_subject_label(tweet_list: list):
 				tweet['domestic_policy'] = 1
 				counter += 1
 			if impeachment_probs[index][1] > threshold:
-				tweet['impeachment'] = 1
-				counter += 1
+				if datetime.strptime(tweet['created_at'], "%m-%d-%Y %H:%M:%S") >= datetime.strptime("1 1 2017", "%m %d %Y"):
+					tweet['impeachment'] = 1
+					counter += 1
 				
 			if counter != 0:
 				tweet['other'] = 0
@@ -459,7 +433,7 @@ def write_data_csv(tweet_list: list, filename):
 	csv_columns = ['created_at', 'text', 'id_str', 'favorite_count', 'retweet_count', 'sentiment', 'subjectivity', 'reading_ease', 'grade_level', 'length', 'economy', 'covid', 'foreign_policy', 'domestic_policy', 'impeachment', 'other']
 
 	try:
-		with open(filename, 'w', newline='') as f:
+		with open(filename, 'w', newline='', encoding='utf-8') as f:
 			csv_writer = csv.writer(f, delimiter=",")
 			csv_writer.writerow(csv_columns)
 			
@@ -685,7 +659,8 @@ def get_bad_tweets(tweet_list: list):
 
 
 if __name__ == '__main__':
-	tweet_list = read_csv('tweets.csv')
+	# tweet_list = read_csv('tweets.csv')
+	tweet_list = read_csv('test_file0.csv')
 
 	aggregated_month = group_tweets_by_month(tweet_list)
 	aggregated_subject = add_subject_aggregates(tweet_list)

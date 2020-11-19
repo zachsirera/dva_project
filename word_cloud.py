@@ -123,16 +123,16 @@ def create_cloud(df, filename):
 
     # Each word will go into one of these color bins
     color_to_words = {
-        '#d7191c': [],
-        '#fdae61': [],
-        '#ffffbf': [],
-        '#a6d96a': [],
-        '#1a9641': [],
+        '#6f559e': [],
+        '#b5afd3': [],
+        '#f3eeea': [],
+        '#fabb6c': [],
+        '#ce7211': [],
     }
 
-    colors = ['#d7191c', '#fdae61', '#ffffbf', '#a6d96a', '#1a9641']
+    colors = ['#6f559e', '#b5afd3', '#f3eeea', '#fabb6c', '#ce7211']
 
-    negative = -0.15
+    negative = -0.2
     positive = 0.6
 
     sentiment_cutoffs = np.arange(negative, positive, ((positive-negative)/5))
@@ -140,7 +140,7 @@ def create_cloud(df, filename):
     for key in sentiment.keys():
         color_index = np.digitize(sentiment[key], sentiment_cutoffs)
         color_index = min(color_index, len(sentiment_cutoffs) - 1) # keep the value in range
-        # print(key, sentiment[key])
+        print(key, sentiment[key])
         color_to_words[colors[color_index]].append(key)
 
     # Words that are not in any of the color_to_words values
@@ -169,15 +169,23 @@ if __name__ == "__main__":
 
 
     # Read csv into dataframe
-    # df = pd.read_csv('tweets.csv', quotechar='', quoting=3).dropna()
-    df = pd.read_csv('new_data/tweet_data.csv')
+    df = pd.read_csv('tweets.csv', quotechar='', quoting=3).dropna()
+    df_subjects = pd.read_csv('new_data/tweet_data.csv')
 
     # Convert data types and merge dataframes
     df['id_str'] = df['id_str'].apply(float)
-    # df_subjects['id_str'] = df_subjects['id_str'].apply(float)
-    # df = pd.merge(df, df_subjects, on='id_str', suffixes=("", "_y"))
+    df['retweet_count'] = df['retweet_count'].apply(int)
+    df_subjects['id_str'] = df_subjects['id_str'].apply(float)
+    df = pd.merge(df, df_subjects, on='id_str', suffixes=("", "_y"))
+
+    # Save for analyze.py potential fix
+    # df.to_csv('test_file0.csv', index=False, columns=['source', 'text', 'created_at', 'retweet_count', 'favorite_count', 'is_retweet', 'id_str'])
+
+
+
 
     # Convert datatypes, drop duplicate tweets
+    df['id_str'] = df['id_str'].apply(float)
     df['text'] = df['text'].apply(str)
     df['created_at'] = df['created_at'].apply(str)
     df.drop_duplicates(subset=['text'], keep='first', inplace=True)
@@ -188,9 +196,6 @@ if __name__ == "__main__":
     # Remove Twitter handles and lowercase all words
     df['tidy_tweet'] = np.vectorize(remove_users)(df['text'], "@ [\w]*", "@[\w]*")
     df['tidy_tweet'] = df['tidy_tweet'].str.lower()
-
-    # Remove the retweets
-    # df = df[(df['is_retweet'] == "false")]
 
     # Remove hashtags
     # df['tidy_tweet'] = np.vectorize(remove_hashtags)(df['tidy_tweet'], "# [\w]*", "#[\w]*")
@@ -225,29 +230,3 @@ if __name__ == "__main__":
             # Create word cloud for the subject only if there are > 5 tweets
             if df_current_subject.shape[0] > 5:
                 create_cloud(df_current_subject, f"{year}_{subject}")
-
-
-
-# Hashtag code
-# Top Hashtags dataframe
-# df['hashtags'] = df['tidy_tweet'].apply(lambda twt: re.findall(r"#(\w+)", twt))
-# d = Counter(df.hashtags.sum())
-# df_hashtags = pd.DataFrame([d]).T
-# df_hashtags.columns = ['freq']
-# print(df_hashtags.freq.sum())
-# df_hashtags.sort_values(by=['freq'], ascending=False, inplace=True)
-# print(df_hashtags.head(20))
-# Visualize it
-# labels = df_hashtags.head(25).index.values.tolist()
-# freq = df_hashtags['freq'].head(25).values.tolist()
-# index = np.arange(len(freq))
-# plt.figure(figsize=(12, 9))
-# plt.bar(index, freq, alpha=0.8, color='black')
-# plt.xlabel('Hashtags', fontsize=13)
-# plt.ylabel('Frequency', fontsize=13)
-# plt.xticks(index, labels, fontsize=11, rotation=90, fontweight="bold")
-# plt.title('Top 25 Hashtags of dataset', fontsize=12, fontweight="bold")
-# plt.show()
-# df = df.drop(['hashtags'], axis=1)
-
-
