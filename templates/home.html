@@ -765,27 +765,35 @@
 			.attr("stroke", "blue")
 			.attr("stroke-width", 1);
 			
-		 svg_2.append("text")
-	        .attr("tansform", "translate(0," + svg_1_height + ")")
-	        .attr("y", svg_2_height - 420)
-	        .attr("x", svg_2_width / 2)
-	        .attr("text-anchor", "middle")
-			.text("Slope = "+slope.toFixed(0).toString());
+		var slopeDataText1 = svg_2.append("text")
+		.attr("y", svg_2_height - 420)
+		.attr("x", 100)
+		.text("Slope = ");
+		
+		slopeDataText1.append("tspan")
+		.style("font-weight","bold")
+		.attr("text-anchor", "middle")
+			.text(slope.toFixed(0).toString());
 
-		 svg_2.append("text")
-	        .attr("tansform", "translate(0," + svg_1_height + ")")
-	        .attr("y", svg_2_height - 400)
-	        .attr("x", svg_2_width / 2)
-	        .attr("text-anchor", "middle")
-			.text("Slope Standard Error = "+slopeSE.toFixed(0).toString());			
-
-
-		 svg_2.append("text")
-	        .attr("tansform", "translate(0," + svg_1_height + ")")
-	        .attr("y", svg_2_height - 380)
-	        .attr("x", svg_2_width / 2)
-	        .attr("text-anchor", "middle")
-			.text("Slope P-Value = "+slopePValue.toFixed(2).toString());		
+		var slopeDataText2 = svg_2.append("text")
+		.attr("x", 100)
+		.attr("y", svg_2_height - 400)
+		.text("Slope Standard Error = ");
+		
+		slopeDataText2.append("tspan")
+		.style("font-weight","bold")
+		.attr("text-anchor", "middle")
+			.text(slopeSE.toFixed(0).toString());
+			
+		var slopeDataText3 = svg_2.append("text")
+		.attr("x", 100)
+		.attr("y", svg_2_height - 380)
+		.text("Slope P-Value = ");
+		
+		slopeDataText3.append("tspan")
+		.style("font-weight","bold")
+		.attr("text-anchor", "middle")
+			.text(slopePValue.toFixed(2).toString());	
 
 
 	}
