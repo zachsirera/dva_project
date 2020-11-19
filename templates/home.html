@@ -704,9 +704,44 @@
 		//Now we use the results of the regression to create coordinates
 		//that we will later draw:
 		
-		var x1 = d3.min(xdata);
+		//We don't want the line to go bellow the x axis
+		//so first I find where the line cuts the x axis 
+		//and then check if it does it in the visible part 
+		//of the plot. If it does I have to calculte x and y
+		//different
+		
+		var xIntercept = parseFloat(-intercept/slope);
+		var xLowerLimit = parseFloat(d3.min(xdata));
+		var xUpperLimit = parseFloat(d3.max(xdata));
+
+		if((xIntercept < xLowerLimit) || (xIntercept > xUpperLimit))
+		{
+			//This is the normal case, when line touches the x axis outside the 
+			//area of the plot we render.
+			var x1 = d3.min(xdata);
+			var x2 = d3.max(xdata);
+		}
+		else
+		{
+			
+			if(slope >0)
+			{
+				//This is the case when the line first touches.
+				//the x axis and then moves up to the left 
+				var x1 = xIntercept;
+				var x2 = d3.max(xdata);
+			}
+			else
+			{
+				//This is the case when the line comes down from
+				//the left and then touches the x axis.
+				var x1 = d3.min(xdata);
+				var x2 = xIntercept;
+			}
+			
+		}
+
 		var y1 = slope * x1 + intercept;
-		var x2 = d3.max(xdata);
 		var y2 = slope * x2 + intercept;
 		
 		var x1Scaled = scatter_x(x1); 
@@ -735,14 +770,14 @@
 	        .attr("y", svg_2_height - 420)
 	        .attr("x", svg_2_width / 2)
 	        .attr("text-anchor", "middle")
-			.text("Slope = "+slope.toFixed(2).toString());
+			.text("Slope = "+slope.toFixed(0).toString());
 
 		 svg_2.append("text")
 	        .attr("tansform", "translate(0," + svg_1_height + ")")
 	        .attr("y", svg_2_height - 400)
 	        .attr("x", svg_2_width / 2)
 	        .attr("text-anchor", "middle")
-			.text("Slope Standard Error = "+slopeSE.toFixed(2).toString());			
+			.text("Slope Standard Error = "+slopeSE.toFixed(0).toString());			
 
 
 		 svg_2.append("text")
@@ -1075,9 +1110,9 @@
 		var intercept = yAvg - (xAvg * slope);
 		var RSquare = Math.pow(ssXY, 2) / (ssXX * ssYY);
 		var correlation = (sdXX*sdYY)/((Math.sqrt(ssXX))*(Math.sqrt(ssYY)));
-		console.log("ssXY = "+ssXY.toString())
+		console.log("ssXY = "+ssXY.toString());
 		var slopeSE = Math.sqrt(ssYY/(xSeries.length - 2))/Math.sqrt(ssXX);
-		var slopePValue = jStat.ttest( slope/slopeSE, xSeries.length )
+		var slopePValue = jStat.ttest( slope/slopeSE, xSeries.length );
 		
 		return [slope, intercept, RSquare, correlation, slopeSE, slopePValue];
 	}
