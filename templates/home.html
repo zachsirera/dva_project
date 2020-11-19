@@ -949,7 +949,7 @@
 	    	.append("text")
 	        .attr("transform", "translate(0,0)")
 	        .attr("text-anchor", "end")
-	        .attr("x", function(d) { return Math.max(bar_graph_x( parse_events( d['date'])) - svg_1_margin.left - 5, 150); })
+	        .attr("x", function(d) { return bar_graph_x( parse_events( d['date'])) - svg_1_margin.left - 5; })
 	        .attr("y", 25)
 	        .text(function(d) { return d['title']; })
 	        .attr("fill", theme.grey)
