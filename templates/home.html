@@ -765,9 +765,13 @@
 			.attr("stroke", "blue")
 			.attr("stroke-width", 1);
 			
-		var slopeDataText1 = svg_2.append("text")
-		.attr("y", svg_2_height - 420)
-		.attr("x", 100)
+		var slopeDataDiv = svg_2.append("g")
+		.attr("transform", "translate(260,"+(svg_2_height-420).toString()+ ")");
+
+			
+		var slopeDataText1 = slopeDataDiv.append("text")
+		.attr("text-anchor","middle")	
+		.attr("alignment-baseline","central")
 		.text("Slope = ");
 		
 		slopeDataText1.append("tspan")
@@ -775,19 +779,21 @@
 		.attr("text-anchor", "middle")
 			.text(slope.toFixed(0).toString());
 
-		var slopeDataText2 = svg_2.append("text")
-		.attr("x", 100)
-		.attr("y", svg_2_height - 400)
+		var slopeDataText2 = slopeDataDiv.append("text")
+		.attr("text-anchor","middle")	
+		.attr("alignment-baseline","central")
+		.attr("y",20)
 		.text("Slope Standard Error = ");
 		
 		slopeDataText2.append("tspan")
 		.style("font-weight","bold")
 		.attr("text-anchor", "middle")
-			.text(slopeSE.toFixed(0).toString());
+		.text(slopeSE.toFixed(0).toString());
 			
-		var slopeDataText3 = svg_2.append("text")
-		.attr("x", 100)
-		.attr("y", svg_2_height - 380)
+		var slopeDataText3 = slopeDataDiv.append("text")
+		.attr("text-anchor","middle")	
+		.attr("alignment-baseline","central")
+		.attr("y",40)
 		.text("Slope P-Value = ");
 		
 		slopeDataText3.append("tspan")
