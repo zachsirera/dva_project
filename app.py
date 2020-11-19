@@ -33,7 +33,7 @@ def home():
 
 	reducedDict = {}
 
-	maxTweetsPerTopic = 4940
+	maxTweetsPerTopic = 1586   #4940 gives about 25% of the data. 1586 gives 10%
 
 	for workingTopic in topics:
 
