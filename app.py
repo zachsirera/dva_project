@@ -29,7 +29,7 @@ def home():
 	#Here I make sure I have at most the max allowed number of tweets by category
 	#but keep all the tweets for those categories where we have fewere than the max
 	#allowed
-	topics = ['covid','economy','foreign_policy','impeachment','domestic_policy']
+	topics = ['covid','economy','foreign_policy','impeachment','domestic_policy','other']
 
 	reducedDict = {}
 
