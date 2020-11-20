@@ -206,7 +206,7 @@
 
 		});
 
-	function convertTImestampToDate(timestamp) {
+	function convertTimestampToDate(timestamp) {
 		const actualDate = new Date();
 
 		const [monthPlusOne, date, year] = timestamp.split(" ")[0].split("-")
@@ -219,12 +219,12 @@
 
 	function ready(events, aggregated_tweets, tweet_data, calendar_data) {
 		const latestTweet = tweet_data.sort((data1, data2) => {
-			const actualDate1 = convertTImestampToDate(data1.created_at);
-			const actualDate2 = convertTImestampToDate(data2.created_at);
+			const actualDate1 = convertTimestampToDate(data1.created_at);
+			const actualDate2 = convertTimestampToDate(data2.created_at);
 
 			return actualDate2 - actualDate1;
 		})[0]
-		const latestDate = convertTImestampToDate(latestTweet.created_at);
+		const latestDate = convertTimestampToDate(latestTweet.created_at);
 		$('#updated-at-span').text(`${latestDate.getMonth() + 1}/${latestDate.getDay() + 1}/${latestDate.getUTCFullYear()}`);
 		
 
@@ -259,7 +259,7 @@
             svg_4.selectAll("*").remove();
 			build_bar_graph(events, aggregated_tweets, new_subject, attr);
 			
-			//# if attr = "Lenght" filter tweet_data < 280
+			//# if attr = "length" filter tweet_data < 280
 			build_scatter_plot(tweet_data, new_subject, attr, data);
 			build_word_cloud(new_subject, yr, attr);
 			build_calendar(calendar_data, new_subject, attr);
@@ -629,7 +629,7 @@
 	    // y axis 
 		svg_2.append("text")
 	        .attr("transform", "rotate(-90)")
-	        .attr("y", 25)
+	        .attr("y", 20)
 	        .attr("x", -200)
 	        .attr("text-anchor", "middle")
             .text(function() {
@@ -907,9 +907,9 @@
 
 	    // x axis label
 	    svg_1.append("text")
-	        .attr("tansform", "translate(0," + svg_1_height + ")")
-	        .attr("y", 290)
-	        .attr("x", 720)
+	        {#.attr("transform", "translate(0," + svg_1_height + ")")#}
+	        .attr("y", svg_1_height - 14)
+	        .attr("x", svg_1_width / 2)
 	        .attr("text-anchor", "middle")
 	        .text("Month");
 
