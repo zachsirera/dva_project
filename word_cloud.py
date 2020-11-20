@@ -105,24 +105,28 @@ def rejoin_words(row):
 
 
 def create_cloud(df, filename):
-    # df['no_stop_joined'] = df.apply(rejoin_words, axis=1)
     all_words = ' '.join([text for text in df.apply(rejoin_words, axis=1)])
 
     # Word counts - not used but could be used for d3
-    tokens = all_words.split()
-    counts = Counter(tokens)
+    # tokens = all_words.split()
+    # counts = Counter(tokens)
 
     wordcloud = WordCloud(width=940, height=500, random_state=21, max_font_size=110, background_color='white',
                           max_words=100, normalize_plurals=False).generate(all_words)
 
-    # Top 100 words' sentiment for coloring
-    sentiment = {}
+    # Top 100 words' data means for coloring
+    default_color = 'grey'
+    sentiment, subjectivity, grade_level = {}, {}, {}
+
     for key in wordcloud.words_.keys():
         key_df = df[df['tidy_tweet'].str.contains(key)]
         sentiment[key] = key_df['sentiment'].mean()
+        subjectivity[key] = key_df['subjectivity'].mean()
+        grade_level[key] = key_df['grade_level'].mean()
 
-    # Each word will go into one of these color bins
-    color_to_words = {
+    # Each word will go into one of these color bins - sentiment first
+    colors_sentiment = ['#6f559e', '#b5afd3', '#f3eeea', '#fabb6c', '#ce7211']
+    color_to_words_sentiment = {
         '#6f559e': [],
         '#b5afd3': [],
         '#f3eeea': [],
@@ -130,38 +134,97 @@ def create_cloud(df, filename):
         '#ce7211': [],
     }
 
-    colors = ['#6f559e', '#b5afd3', '#f3eeea', '#fabb6c', '#ce7211']
+    lower_cutoff = -0.2
+    upper_cutoff = 0.6
 
-    negative = -0.2
-    positive = 0.6
-
-    sentiment_cutoffs = np.arange(negative, positive, ((positive-negative)/5))
+    sentiment_cutoffs = np.arange(lower_cutoff, upper_cutoff, ((upper_cutoff - lower_cutoff) / 5))
 
     for key in sentiment.keys():
         color_index = np.digitize(sentiment[key], sentiment_cutoffs)
-        color_index = min(color_index, len(sentiment_cutoffs) - 1) # keep the value in range
-        print(key, sentiment[key])
-        color_to_words[colors[color_index]].append(key)
+        color_index = min(color_index, len(sentiment_cutoffs) - 1)  # keep the value in range
+        # print(key, sentiment[key])
+        color_to_words_sentiment[colors_sentiment[color_index]].append(key)
 
-    # Words that are not in any of the color_to_words values
-    # will be colored with a grey single color function
-    default_color = 'grey'
 
     # Create a color function with multiple tones
-    grouped_color_func = GroupedColorFunc(color_to_words, default_color)
+    grouped_color_func = GroupedColorFunc(color_to_words_sentiment, default_color)
 
     # Apply our color function
     wordcloud.recolor(color_func=grouped_color_func)
 
+    # Show and save figure
+    plt.figure(figsize=(9.4, 5))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis('off')
+    plt.tight_layout()
+    plt.savefig(f"./static/{filename}_sentiment.png")
+    plt.show()
 
 
+    # Repeat for subjectivity
+    colors_subjectivity = ['#8e0152', '#ea9ec9', '#f7f1f1', '#c1e497', '#67a833']
+    color_to_words_subjectivity = {
+        '#8e0152': [],
+        '#ea9ec9': [],
+        '#f7f1f1': [],
+        '#c1e497': [],
+        '#67a833': [],
+    }
 
+    lower_cutoff = 0.1
+    upper_cutoff = 0.9
+
+    subjectivity_cutoffs = np.arange(lower_cutoff, upper_cutoff, ((upper_cutoff - lower_cutoff) / 5))
+
+    for key in subjectivity.keys():
+        color_index = np.digitize(subjectivity[key], subjectivity_cutoffs)
+        color_index = min(color_index, len(subjectivity_cutoffs) - 1) # keep the value in range
+        # print(key, subjectivity[key])
+        color_to_words_subjectivity[colors_subjectivity[color_index]].append(key)
+
+
+    # Show and save figure
+    grouped_color_func = GroupedColorFunc(color_to_words_subjectivity, default_color)
+    wordcloud.recolor(color_func=grouped_color_func)
 
     plt.figure(figsize=(9.4, 5))
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis('off')
     plt.tight_layout()
-    plt.savefig(f"./static/{filename}.png")
+    plt.savefig(f"./static/{filename}_subjectivity.png")
+    plt.show()
+
+
+    # Repeat for grade level (reading level)
+    colors_grade_level = ['#f7fbff', '#f7fbff', '#b5d4e9', '#3c8bc2', '#08306b']
+    color_to_words_grade_level = {
+        '#f7fbff': [],
+        '#f7fbff': [],
+        '#b5d4e9': [],
+        '#3c8bc2': [],
+        '#08306b': [],
+    }
+
+    lower_cutoff = 1
+    upper_cutoff = 12
+
+    grade_level_cutoffs = np.arange(lower_cutoff, upper_cutoff, ((upper_cutoff - lower_cutoff) / 5))
+
+    for key in grade_level.keys():
+        color_index = np.digitize(grade_level[key], grade_level_cutoffs)
+        color_index = min(color_index, len(grade_level_cutoffs) - 1) # keep the value in range
+        # print(key, grade_level_cutoffs[key])
+        color_to_words_grade_level[colors_grade_level[color_index]].append(key)
+
+    # Show and save figure
+    grouped_color_func = GroupedColorFunc(color_to_words_grade_level, default_color)
+    wordcloud.recolor(color_func=grouped_color_func)
+
+    plt.figure(figsize=(9.4, 5))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis('off')
+    plt.tight_layout()
+    plt.savefig(f"./static/{filename}_grade_level.png")
     plt.show()
 
 
