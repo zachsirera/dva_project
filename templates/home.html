@@ -236,7 +236,7 @@
 		// initially build bar graph with default values
 		build_bar_graph(events, aggregated_tweets, default_subj, default_attr);
 		build_scatter_plot(tweet_data, default_subj, default_attr, default_data);
-		build_word_cloud(default_subj, default_year);
+		build_word_cloud(default_subj, default_year, default_attr);
 		build_calendar(calendar_data, default_subj, default_attr);
 
 
@@ -261,7 +261,7 @@
 			
 			//# if attr = "Lenght" filter tweet_data < 280
 			build_scatter_plot(tweet_data, new_subject, attr, data);
-			build_word_cloud(new_subject, yr);
+			build_word_cloud(new_subject, yr, attr);
 			build_calendar(calendar_data, new_subject, attr);
 		}
 
@@ -273,7 +273,7 @@
 
 		// handle when the user selects a new year
 		function year_change(new_year) {
-			build_word_cloud(subj, new_year);
+			build_word_cloud(subj, new_year, attr);
 		}
 
 		// listen for attribute button change 
@@ -287,10 +287,12 @@
 
 			svg_1.selectAll("*").remove();
 			svg_2.selectAll("*").remove();
+			svg_3.selectAll("*").remove();
 			svg_4.selectAll("*").remove();
 			build_bar_graph(events, aggregated_tweets, subj, new_attr);
 			build_scatter_plot(tweet_data, subj, new_attr, data);
-			build_calendar(calendar_data, subj, new_attr)
+			build_word_cloud(subj, yr, new_attr);
+			build_calendar(calendar_data, subj, new_attr);
 		}
 
 		// listen for data button change 
@@ -516,19 +518,22 @@
 
 	}
 
-	function build_word_cloud(subject, year) {
+	function build_word_cloud(subject, year, attribute) {
+		attr = attribute;
 		yr = year;
 		subj = subject;
 
 		if (subj == 'all') {
-			var filename = yr.toString() + '.png';
+			var filename = yr.toString() + '_' + attr.toString() +'.png';
 		} else {
-			var filename = yr.toString() + '_' + subj + '.png';
+			var filename = yr.toString() + '_' + subj + '_' + attr.toString() + '.png';
 		}
 
 
 		// var attr_string = "{{url_for('static', filename=" + filename + ")}}";
 		var attr_string = "static/" + filename;
+
+		console.log(attr_string);
 
 
 		svg_3.append("svg:image")
