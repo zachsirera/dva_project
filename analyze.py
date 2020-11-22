@@ -5,6 +5,7 @@
 import csv
 import string
 import textstat
+import pandas as pd
 from datetime import datetime
 
 from textblob import TextBlob
@@ -659,8 +660,11 @@ def get_bad_tweets(tweet_list: list):
 
 
 if __name__ == '__main__':
-	# tweet_list = read_csv('tweets.csv')
-	tweet_list = read_csv('test_file0.csv')
+	# Cleaning tweet data for proper parsing
+	df = pd.read_csv('tweets.csv', quotechar='', quoting=3).dropna()
+	df.to_csv('cleaned_tweets.csv', index=False, columns=['source', 'text', 'created_at', 'retweet_count', 'favorite_count', 'is_retweet', 'id_str'])
+
+	tweet_list = read_csv('cleaned_tweets.csv')
 
 	aggregated_month = group_tweets_by_month(tweet_list)
 	aggregated_subject = add_subject_aggregates(tweet_list)
