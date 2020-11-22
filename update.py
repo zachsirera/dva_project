@@ -80,7 +80,7 @@ def read_csv(filename: str):
 	ints = ['favorite_count', 'retweet_count', 'length']
 	floats = ['sentiment', 'subjectivity', 'reading_ease', 'grade_level']
 
-	with open(filename, 'r') as f:
+	with open(filename, 'r', encoding='utf-8') as f:
 		csv_reader = csv.reader(f, delimiter=',')
 		header_labels = list(next(csv_reader))
 

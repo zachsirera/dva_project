@@ -62,7 +62,7 @@
 			{
 				//This is not the actual tooltip height. It's an estimate. If we want the tooltip to appear lower we would increase
 				//this number
-				var tooltipHeight = 100;
+				var tooltipHeight = 130;
 				//console.log(d.tooltipBasePosition + tooltipHeight);
 				//console.log(svg_1_height);
 				
@@ -206,7 +206,7 @@
 
 		});
 
-	function convertTImestampToDate(timestamp) {
+	function convertTimestampToDate(timestamp) {
 		const actualDate = new Date();
 
 		const [monthPlusOne, date, year] = timestamp.split(" ")[0].split("-")
@@ -219,12 +219,12 @@
 
 	function ready(events, aggregated_tweets, tweet_data, calendar_data) {
 		const latestTweet = tweet_data.sort((data1, data2) => {
-			const actualDate1 = convertTImestampToDate(data1.created_at);
-			const actualDate2 = convertTImestampToDate(data2.created_at);
+			const actualDate1 = convertTimestampToDate(data1.created_at);
+			const actualDate2 = convertTimestampToDate(data2.created_at);
 
 			return actualDate2 - actualDate1;
 		})[0]
-		const latestDate = convertTImestampToDate(latestTweet.created_at);
+		const latestDate = convertTimestampToDate(latestTweet.created_at);
 		$('#updated-at-span').text(`${latestDate.getMonth() + 1}/${latestDate.getDay() + 1}/${latestDate.getUTCFullYear()}`);
 		
 
@@ -236,7 +236,7 @@
 		// initially build bar graph with default values
 		build_bar_graph(events, aggregated_tweets, default_subj, default_attr);
 		build_scatter_plot(tweet_data, default_subj, default_attr, default_data);
-		build_word_cloud(default_subj, default_year);
+		build_word_cloud(default_subj, default_year, default_attr);
 		build_calendar(calendar_data, default_subj, default_attr);
 
 
@@ -259,9 +259,9 @@
             svg_4.selectAll("*").remove();
 			build_bar_graph(events, aggregated_tweets, new_subject, attr);
 			
-			//# if attr = "Lenght" filter tweet_data < 280
+			//# if attr = "length" filter tweet_data < 280
 			build_scatter_plot(tweet_data, new_subject, attr, data);
-			build_word_cloud(new_subject, yr);
+			build_word_cloud(new_subject, yr, attr);
 			build_calendar(calendar_data, new_subject, attr);
 		}
 
@@ -273,7 +273,7 @@
 
 		// handle when the user selects a new year
 		function year_change(new_year) {
-			build_word_cloud(subj, new_year);
+			build_word_cloud(subj, new_year, attr);
 		}
 
 		// listen for attribute button change 
@@ -287,10 +287,12 @@
 
 			svg_1.selectAll("*").remove();
 			svg_2.selectAll("*").remove();
+			svg_3.selectAll("*").remove();
 			svg_4.selectAll("*").remove();
 			build_bar_graph(events, aggregated_tweets, subj, new_attr);
 			build_scatter_plot(tweet_data, subj, new_attr, data);
-			build_calendar(calendar_data, subj, new_attr)
+			build_word_cloud(subj, yr, new_attr);
+			build_calendar(calendar_data, subj, new_attr);
 		}
 
 		// listen for data button change 
@@ -516,19 +518,22 @@
 
 	}
 
-	function build_word_cloud(subject, year) {
+	function build_word_cloud(subject, year, attribute) {
+		attr = attribute;
 		yr = year;
 		subj = subject;
 
 		if (subj == 'all') {
-			var filename = yr.toString() + '.png';
+			var filename = yr.toString() + '_' + attr.toString() +'.png';
 		} else {
-			var filename = yr.toString() + '_' + subj + '.png';
+			var filename = yr.toString() + '_' + subj + '_' + attr.toString() + '.png';
 		}
 
 
 		// var attr_string = "{{url_for('static', filename=" + filename + ")}}";
 		var attr_string = "static/" + filename;
+
+		console.log(attr_string);
 
 
 		svg_3.append("svg:image")
@@ -624,7 +629,7 @@
 	    // y axis 
 		svg_2.append("text")
 	        .attr("transform", "rotate(-90)")
-	        .attr("y", 25)
+	        .attr("y", 15)
 	        .attr("x", -200)
 	        .attr("text-anchor", "middle")
             .text(function() {
@@ -867,7 +872,7 @@
 		}
 		;
     	var g_1 = svg_1.append("g")
-			.attr("transform", "translate(" + svg_1_margin.left + "," + 0 + ")");
+			.attr("transform", "translate(" + svg_1_margin.left + "," + 5 + ")");
 
     	// define dimensions and axes  for bar graph 
 		var bar_graph_x = d3.scaleTime()
@@ -897,14 +902,14 @@
 		// x axis
 		g_1.append("g")
 	        .attr("class", "axis")
-	        .attr('transform', 'translate(' + (0 - svg_1_margin.left) + ',' + (svg_1_height - svg_1_margin.bottom) + ')') 
+	        .attr('transform', 'translate(' + (0 - svg_1_margin.left) + ',' + (svg_1_height - svg_1_margin.bottom) + ')')
 	        .call(bg_x_axis);
 
 	    // x axis label
 	    svg_1.append("text")
-	        .attr("tansform", "translate(0," + svg_1_height + ")")
-	        .attr("y", 290)
-	        .attr("x", 720)
+	        {#.attr("transform", "translate(0," + svg_1_height + ")")#}
+	        .attr("y", svg_1_height - 10)
+	        .attr("x", svg_1_width / 2)
 	        .attr("text-anchor", "middle")
 	        .text("Month");
 
