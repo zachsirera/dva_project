@@ -662,6 +662,7 @@ def get_bad_tweets(tweet_list: list):
 if __name__ == '__main__':
 	# Cleaning tweet data for proper parsing
 	df = pd.read_csv('tweets.csv', quotechar='', quoting=3).dropna()
+	df['retweet_count'] = df['retweet_count'].apply(int)
 	df.to_csv('cleaned_tweets.csv', index=False, columns=['source', 'text', 'created_at', 'retweet_count', 'favorite_count', 'is_retweet', 'id_str'])
 
 	tweet_list = read_csv('cleaned_tweets.csv')
