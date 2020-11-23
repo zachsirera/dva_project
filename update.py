@@ -164,6 +164,16 @@ def write_new_tweet_data(tweet_list: list):
 
 	analyze.write_data_csv(tweet_list, 'new_data/tweet_data.csv')
 
+	return
+
+def write_new_calendar_tweets(tweet_list: list)
+
+	aggregated_day = analyze.group_tweets_by_day(tweet_list)
+	aggregated_subject_day = analyze.add_subject_aggregates_day(tweet_list)
+
+	write_calendar_csv(aggregated_day, aggregated_subject_day, 'new_data/calendar_tweets.csv')
+
+	return
 
 
 def update_word_clouds(tweet_list: list): 
@@ -198,6 +208,7 @@ if __name__ == '__main__':
 		# write the combined data to the disk
 		write_new_aggregated_tweets(updated_tweet_list)
 		write_new_tweet_data(updated_tweet_list)
+		# write_calendar_csv(updated_tweet_list)
 	
 	
 
